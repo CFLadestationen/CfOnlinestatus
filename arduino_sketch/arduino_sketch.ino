@@ -4,16 +4,22 @@
  * Development thread (in German): https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html
  * 
  * Current features
- * - Read an arbitrary number of S0 inputs and digital inputs
+ * - Read an arbitrary number of S0 inputs, digital inputs and analog inputs
  * - Print the status of those inputs on the serial console
  * - Serial format for S0: s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_since_last_output>:<seconds since last impulse>:<newline \n>
- * - S0 example:
+ *   S0 example:
  *     s0_CounterA:300:6:0:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses since the last output and 0 seconds since the last impulse
  *     s0_CounterB:465:0:20: // s0 pin CounterB had 465 ms between the last two impulses, 0 impulses since the last output and 20 seconds since the last impulse
  * - Serial format for digital input: di_<pin_name>:<status on or off>:<newline \n>
- * - Digital input example:
+ *   Digital input example:
  *     di_SpaceOccupied:on:
  *     di_ContactorOn:off:
+ * - Serial format for analog input: ai_<pin_name>:<analog_value_as_uint8>:<low, mid or high>:<newline \n>
+ *   Analog input example (low means <= off_value, high means > on_value, mid means in between the two)
+ *     ai_PPVoltage:100:mid:
+ *     ai_PPVoltage:80:low:
+ *     ai_PPVoltage:220:high:
+ * 
  */
 struct named_pin {
   const char* pin_name;
@@ -61,12 +67,28 @@ const named_pin digital_input[] = {
     INPUT_PULLUP     // pin mode    
   }
 };
+
+// Definition of analog inputs
+// CAUTION: ESP8266 only has one analog input (A0) with a voltage range of 0V - 1V, 
+//          so you will need a 1:4 voltage divider (5V becomes 1V) to detect PP voltage.
+const named_pin analog_input[] = {
+  {
+    "PPVoltage",   // pin name
+    A0,            // pin number
+    217, // 0.85 V // "high" voltage (for SAE J1772: PP = not connected)
+    87,  // 0.34 V // "low" voltage (for SAE J1772: PP = connected)
+    // if value is between the two limits, it is considered "mid" (for SAE J1772: PP = button pressed)
+    INPUT        // pin mode
+  }
+};
+
 // ---- End of customizable section ----
 
 // Internal variables
 uint32_t last_output;
 const uint8_t s0_pincount = sizeof(s0)/sizeof(s0[0]);
 const uint8_t di_pincount = sizeof(digital_input)/sizeof(digital_input[0]);
+const uint8_t ai_pincount = sizeof(analog_input)/sizeof(analog_input[0]);
 uint32_t last_s0_millis[s0_pincount];
 uint32_t last_s0_span[s0_pincount];
 uint8_t  last_s0_state[s0_pincount];
@@ -79,9 +101,11 @@ void setup() {
   
   Serial.print("\n\nCfOnlinestatus starting with ");
   Serial.print(s0_pincount);
-  Serial.print(" S0 pins and ");
+  Serial.print(" S0 pins, ");
   Serial.print(di_pincount);
-  Serial.println(" digital input pins:");
+  Serial.print(" digital input pins and ");
+  Serial.print(ai_pincount);
+  Serial.println(" analog input pins.");
   uint32_t current_time = millis();
   last_output = current_time;
   uint8_t val = 0;
@@ -103,6 +127,17 @@ void setup() {
     Serial.print(" as digital input pin named ");
     Serial.println(digital_input[i].pin_name);
   }
+  for(uint8_t i = 0; i < ai_pincount; i++) {
+    pinMode(analog_input[i].pin_number, analog_input[i].pin_mode);
+    Serial.print("Configured pin number ");
+    Serial.print(analog_input[i].pin_number);
+    Serial.print(" as analog input pin named ");
+    Serial.print(analog_input[i].pin_name);
+    Serial.print(" with low threshold ");
+    Serial.print(analog_input[i].off_value);
+    Serial.print(" and high threshold ");
+    Serial.println(analog_input[i].on_value);
+  }
   Serial.println("CfOnlinestatus initialisation complete.");
 }
 
@@ -113,6 +148,7 @@ void loop() {
     last_output = current_time;
     print_s0_status(); 
     print_digital_input_status();
+    print_analog_input_status();
   }
 }
 
@@ -155,6 +191,25 @@ void print_digital_input_status() {
       Serial.print("on");
     } else {
       Serial.print("off");
+    }
+    Serial.println(":");
+  }
+}
+
+void print_analog_input_status() {
+  for(uint8_t i = 0; i < ai_pincount; i++) {
+    Serial.print("ai_");
+    Serial.print(analog_input[i].pin_name);
+    Serial.print(':');
+    uint8_t value = (uint8_t)(analogRead(analog_input[i].pin_number) >> 2);
+    Serial.print(value);
+    Serial.print(':');
+    if(value > analog_input[i].on_value) {
+      Serial.print("high");
+    } else if(value <= analog_input[i].off_value) {
+      Serial.print("low");
+    } else {
+      Serial.print("mid");
     }
     Serial.println(":");
   }
