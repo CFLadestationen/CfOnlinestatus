@@ -4,7 +4,7 @@
  * Development thread (in German): https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html
  * 
  * Current features
- * - Read an arbitrary number of S0 inputs, digital inputs and analog inputs
+ * - Read an arbitrary number of S0 inputs, digital inputs, analog inputs and HC-SR04 ultrasound sensors
  * - Print the status of those inputs on the serial console
  * - Serial format for S0: s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_since_last_output>:<seconds since last impulse>:<newline \n>
  *   S0 example:
@@ -19,7 +19,10 @@
  *     ai_PPVoltage:100:mid:
  *     ai_PPVoltage:80:low:
  *     ai_PPVoltage:220:high:
- * 
+ * - Serial format for HC-SR04 ultrasound input: us_<sensor_name>:<delay_in_us_as_uint32>:<distance_in_cm_as_uint32>:<newline \n>
+ *   Ultrasound example (If a timeout occurs, the printed delay and distance value is 0)
+ *     us_CarDistance:5800:100: // 1m distance
+ *     us_CarDistance:0:0:      // nothing in range (timeout occured)
  */
 struct named_pin {
   const char* pin_name;
@@ -27,6 +30,15 @@ struct named_pin {
   const uint8_t on_value;
   const uint8_t off_value;
   const uint8_t pin_mode;
+};
+struct ultrasound_sensor {
+  const char* sensor_name;
+  const uint8_t trigger_pin;
+  const uint8_t echo_pin;
+  const uint32_t timeout_us;
+  const uint8_t trigger_on;
+  const uint8_t trigger_off;
+  const uint8_t echo_on;
 };
 
 // ---- Begin of customizable section ----
@@ -82,6 +94,19 @@ const named_pin analog_input[] = {
   }
 };
 
+// Definition of HC-SR04 ultrasound sensors
+const ultrasound_sensor us_sensor[] {
+  {
+    "CarDistance", // sensor name
+    D8,            // Trigger pin
+    D6,            // Echo pin
+    20000,         // Timeout in us - multiply max distance by 58, add 10% safety margin
+    HIGH,          // Trigger ON value
+    LOW,           // Trigger OFF value
+    HIGH           // Echo ON value
+  }
+};
+
 // ---- End of customizable section ----
 
 // Internal variables
@@ -89,6 +114,7 @@ uint32_t last_output;
 const uint8_t s0_pincount = sizeof(s0)/sizeof(s0[0]);
 const uint8_t di_pincount = sizeof(digital_input)/sizeof(digital_input[0]);
 const uint8_t ai_pincount = sizeof(analog_input)/sizeof(analog_input[0]);
+const uint8_t us_pincount = sizeof(us_sensor)/sizeof(us_sensor[0]);
 uint32_t last_s0_millis[s0_pincount];
 uint32_t last_s0_span[s0_pincount];
 uint8_t  last_s0_state[s0_pincount];
@@ -138,6 +164,20 @@ void setup() {
     Serial.print(" and high threshold ");
     Serial.println(analog_input[i].on_value);
   }
+  for(uint8_t i = 0; i < us_pincount; i++) {
+    pinMode(us_sensor[i].echo_pin, INPUT);
+    pinMode(us_sensor[i].trigger_pin, OUTPUT);
+    digitalWrite(us_sensor[i].trigger_pin, us_sensor[i].trigger_off);
+    Serial.print("Configured ultrasound sensor named ");
+    Serial.print(us_sensor[i].sensor_name);
+    Serial.print(" with echo pin ");
+    Serial.print(us_sensor[i].echo_pin);
+    Serial.print(", trigger pin ");
+    Serial.print(us_sensor[i].trigger_pin);
+    Serial.print(" and timeout ");
+    Serial.print(us_sensor[i].timeout_us);
+    Serial.println(" us");
+  }
   Serial.println("CfOnlinestatus initialisation complete.");
 }
 
@@ -149,6 +189,7 @@ void loop() {
     print_s0_status(); 
     print_digital_input_status();
     print_analog_input_status();
+    print_ultrasound_status();
   }
 }
 
@@ -212,6 +253,25 @@ void print_analog_input_status() {
       Serial.print("mid");
     }
     Serial.println(":");
+  }
+}
+
+void print_ultrasound_status() {
+  for(uint8_t i = 0; i < us_pincount; i++) {
+    digitalWrite(us_sensor[i].trigger_pin, us_sensor[i].trigger_off);
+    delayMicroseconds(10);
+    digitalWrite(us_sensor[i].trigger_pin, us_sensor[i].trigger_on);
+    delayMicroseconds(10);
+    digitalWrite(us_sensor[i].trigger_pin, us_sensor[i].trigger_off);
+    uint32_t duration = pulseIn(us_sensor[i].echo_pin, us_sensor[i].echo_on, us_sensor[i].timeout_us);
+    uint32_t distance = duration / 58;
+    Serial.print("us_");
+    Serial.print(us_sensor[i].sensor_name);
+    Serial.print(':');
+    Serial.print(duration);
+    Serial.print(':');
+    Serial.print(distance);
+    Serial.println(':');
   }
 }
 
