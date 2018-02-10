@@ -6,6 +6,9 @@
  * Current features
  * - Read an arbitrary number of S0 inputs, digital inputs, analog inputs and HC-SR04 ultrasound sensors
  * - Print the status of those inputs on the serial console
+ * - Serial output begins with id_<chargepoint_id>:<ms_since_controller_start>:<newline \n>
+ *   Example:
+ *     id_CFMusterstadtGoethestr12:480068:
  * - Serial format for S0: s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_since_last_output>:<seconds since last impulse>:<newline \n>
  *   S0 example:
  *     s0_CounterA:300:6:0:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses since the last output and 0 seconds since the last impulse
@@ -30,7 +33,7 @@
 // Unique name for the charging station
 const char* chargepoint_id = "CFMusterstadtGoethestr12";
 // Send updates every ... ms
-const uint32_t output_delay = 60000;
+const uint32_t update_interval = 60000;
 // Enable software features by uncommenting the #define directive
 #define INPUT_S0         1
 #define INPUT_DIGITAL    1
@@ -172,6 +175,9 @@ void setup() {
 #else
   Serial.println("unknown");
 #endif //Hardware
+  Serial.print("Update interval: ");
+  Serial.print(update_interval);
+  Serial.println(" milliseconds");
 #if defined(INPUT_S0)
   Serial.print(s0_pincount);
   Serial.println(" S0 pin(s)");
@@ -202,8 +208,7 @@ void setup() {
 #endif //OUTPUT_GSM
 #endif //OUTPUT_SERIAL
 
-  uint32_t current_time = millis();
-  last_output = current_time;
+  last_output = 0;
 #if defined(INPUT_S0)
   for(uint8_t i = 0; i < s0_pincount; i++) {
     pinMode(s0[i].pin_number, s0[i].pin_mode);
@@ -273,7 +278,7 @@ void loop() {
 #if defined(INPUT_S0)
   read_s0_inputs();
 #endif //INPUT_S0
-  if(((uint32_t)(current_time-last_output)) >= output_delay) {
+  if(((uint32_t)(current_time-last_output)) >= update_interval) {
     last_output = current_time;
 #if defined(OUTPUT_SERIAL)
     Serial.print("id_");
