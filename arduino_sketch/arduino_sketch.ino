@@ -212,7 +212,7 @@ void setup() {
 #if defined(INPUT_S0)
   for(uint8_t i = 0; i < s0_pincount; i++) {
     pinMode(s0[i].pin_number, s0[i].pin_mode);
-    last_s0_millis[i] = current_time;
+    last_s0_millis[i] = 0;
     last_s0_span[i] = 0;
     last_s0_state[i] = s0[i].off_value;
     impulses_since_output[i] = 0;
