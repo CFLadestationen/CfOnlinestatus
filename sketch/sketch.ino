@@ -8,6 +8,15 @@
  */
 #include "cfos_config.h"
 
+#if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#define CFOS_HARDWARE_PLATFORM ("WeMos D1 R2 & mini")
+#elif defined(ARDUINO_AVR_UNO)
+#define CFOS_HARDWARE_PLATFORM ("Arduino/Genuino Uno")
+#else
+#define CFOS_HARDWARE_PLATFORM ("unknown")
+#error CfOnlinestatus does not know this hardware platform - please fix!
+#endif //Hardware
+
 // Internal variables
 uint32_t last_output;
 #if defined(INPUT_S0)
@@ -39,13 +48,7 @@ void setup() {
   Serial.print(chargepoint_id);
   Serial.println(" starting with following features:");
   Serial.print("Hardware platform: ");
-#if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
-  Serial.println("WeMos D1 R2 & mini");
-#elif defined(ARDUINO_AVR_UNO)
-  Serial.println("Arduino/Genuino Uno");
-#else
-  Serial.println("unknown");
-#endif //Hardware
+  Serial.print(CFOS_HARDWARE_PLATFORM);
   Serial.print("Update interval: ");
   Serial.print(update_interval);
   Serial.println(" milliseconds");
