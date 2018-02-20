@@ -21,6 +21,7 @@
 uint32_t last_output;
 #if defined(INPUT_S0)
 const uint8_t s0_pincount = sizeof(s0)/sizeof(s0[0]);
+static_assert(s0_pincount>0, "S0 input selected, but no S0 input pins defined");
 uint32_t last_s0_millis[s0_pincount];
 uint32_t last_s0_span[s0_pincount];
 uint8_t  last_s0_state[s0_pincount];
@@ -28,12 +29,15 @@ uint32_t impulses_since_output[s0_pincount];
 #endif //INPUT_S0
 #if defined(INPUT_DIGITAL)
 const uint8_t di_pincount = sizeof(digital_input)/sizeof(digital_input[0]);
+static_assert(di_pincount>0, "Digital input selected, but no digital input pins defined");
 #endif //INPUT_DIGITAL
 #if defined(INPUT_ANALOG)
 const uint8_t ai_pincount = sizeof(analog_input)/sizeof(analog_input[0]);
+static_assert(ai_pincount>0, "Analog input selected, but no analog input pins defined");
 #endif //INPUT_ANALOG
 #if defined(INPUT_ULTRASOUND)
 const uint8_t us_pincount = sizeof(us_sensor)/sizeof(us_sensor[0]);
+static_assert(us_pincount>0, "Ultrasound input selected, but no ultrasound input pins defined");
 #endif //INPUT_ULTRASOUND
 
 void setup() {
@@ -48,7 +52,7 @@ void setup() {
   Serial.print(chargepoint_id);
   Serial.println(" starting with following features:");
   Serial.print("Hardware platform: ");
-  Serial.print(CFOS_HARDWARE_PLATFORM);
+  Serial.println(CFOS_HARDWARE_PLATFORM);
   Serial.print("Update interval: ");
   Serial.print(update_interval);
   Serial.println(" milliseconds");
