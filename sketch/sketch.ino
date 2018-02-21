@@ -19,13 +19,21 @@
 #error CfOnlinestatus does not know this hardware platform - please fix!
 #endif //Hardware
 
+#if (defined(CFOS_OUT_MQTT)) && (!defined(CFOS_NET_WIFI) && !defined(CFOS_NET_LAN) && !defined(CFOS_NET_LORA) && !defined(CFOS_NET_GSM))
+#error Network output selected, but no network access method defined
+#endif //Network check
+
 #if defined(CFOS_NET_WIFI)
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
-#else // not ESP8266
-#error The selected hardware platform is not capable of WiFi!
+#else //not ESP8266
+#error CfOnlinestatus does not know how to use WiFi with this device!
 #endif //ESP8266
 #endif //CFOS_NET_WIFI
+
+#if defined(CFOS_OUT_MQTT)
+#include <PubSubClient.h>
+#endif //CFOS_OUT_MQTT
 
 // Internal variables
 uint32_t last_sensor_update;
