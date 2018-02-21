@@ -24,14 +24,14 @@
 #include <ESP8266WiFi.h>
 #else // not ESP8266
 #error The selected hardware platform is not capable of WiFi!
-#endif // ESP8266
-#endif // CFOS_NET_WIFI
+#endif //ESP8266
+#endif //CFOS_NET_WIFI
 
 // Internal variables
 uint32_t last_sensor_update;
 #if defined(CFOS_OUT_SERIAL)
 uint32_t last_serial_output;
-#endif // CFOS_OUT_SERIAL
+#endif //CFOS_OUT_SERIAL
 #if defined(CFOS_IN_S0)
 const uint8_t s0_pincount = sizeof(s0)/sizeof(s0[0]);
 static_assert(s0_pincount>0, "S0 input selected, but no S0 input pins defined");
@@ -61,6 +61,7 @@ void setup() {
   last_sensor_update = 0;
   init_serial();
   init_inputs();
+  init_network();
 
 #if defined(CFOS_OUT_SERIAL)
   Serial.println("CfOnlinestatus initialisation complete.");
@@ -188,6 +189,30 @@ inline void init_inputs() {
 #endif //CFOS_OUT_SERIAL
   }
 #endif //CFOS_IN_ULTRASOUND
+}
+
+inline void init_network() {
+#if defined(CFOS_NET_WIFI)
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(wifi_ssid, wifi_key);
+  int wifi_tries = 20;
+  while(wifi_tries-->0 && WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+#if defined(CFOS_OUT_SERIAL)
+  Serial.print("Configured Wifi with SSID ");
+  Serial.print(wifi_ssid);
+  Serial.print(" and key ");
+  Serial.print(wifi_key);
+  Serial.print(" -- status is currently ");
+  if(WiFi.status() == WL_CONNECTED) {
+    Serial.print("connected with local IP ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println(WiFi.status());
+  }
+#endif //CFOS_OUT_SERIAL
+#endif //CFOS_NET_WIFI
 }
 
 inline void print_serial_interval() {

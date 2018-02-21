@@ -54,13 +54,13 @@ const uint32_t sensor_update_interval = 15000;
 #if defined(CFOS_NET_WIFI)
 const char* wifi_ssid     = "WiFiSSID";
 const char* wifi_key      = "WiFiPresharedKey";
-#endif // CFOS_NET_WIFI
+#endif //CFOS_NET_WIFI
 
 #if defined(CFOS_OUT_SERIAL)
 const uint32_t serial_baudrate = 115200;
 // Send serial updates every ... ms
 const uint32_t serial_output_interval = 60000;
-#endif // CFOS_OUT_SERIAL
+#endif //CFOS_OUT_SERIAL
 
 #if defined(CFOS_IN_S0)
 // Definition of S0 inputs

@@ -19,4 +19,4 @@ struct ultrasound_sensor {
   const uint8_t echo_on;
 };
 
-#endif // CFOS_TYPES_H
+#endif //CFOS_TYPES_H
