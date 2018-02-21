@@ -402,6 +402,20 @@ void print_digital_input_status() {
 }
 #endif //CFOS_IN_DIGITAL && CFOS_OUT_SERIAL
 
+#if defined(CFOS_IN_DIGITAL) && defined(CFOS_OUT_MQTT)
+void send_mqtt_digital_input_status() {
+  for(uint8_t i = 0; i < di_pincount; i++) {
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/di_%s/status", chargepoint_id, digital_input[i].pin_name);
+    if(di_value[i] == digital_input[i].on_value) {
+      mqtt_client.publish(mqtt_topic_buf, "on");
+    } else {
+      mqtt_client.publish(mqtt_topic_buf, "off");
+    }
+    delay(10);
+  }
+}
+#endif //CFOS_IN_DIGITAL && CFOS_OUT_MQTT
+
 inline void update_analog_input() {
 #if defined(CFOS_IN_ANALOG)
   for(uint8_t i = 0; i < ai_pincount; i++) {
@@ -430,6 +444,25 @@ void print_analog_input_status() {
 }
 #endif //CFOS_IN_ANALOG && CFOS_OUT_SERIAL
 
+#if defined(CFOS_IN_ANALOG) && defined(CFOS_OUT_MQTT)
+void send_mqtt_analog_input_status() {
+  for(uint8_t i = 0; i < ai_pincount; i++) {
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ai_%s/value", chargepoint_id, analog_input[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", ai_value[i]);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ai_%s/meaning", chargepoint_id, analog_input[i].pin_name);
+    if(ai_value[i] > analog_input[i].on_value) {
+      mqtt_client.publish(mqtt_topic_buf, "high");
+    } else if(ai_value[i] <= analog_input[i].off_value) {
+      mqtt_client.publish(mqtt_topic_buf, "low");
+    } else {
+      mqtt_client.publish(mqtt_topic_buf, "mid");
+    }
+    delay(10);
+  }
+}
+#endif //CFOS_IN_ANALOG && CFOS_OUT_MQTT
 
 inline void update_ultrasound() {
 #if defined(CFOS_IN_ULTRASOUND)
@@ -458,4 +491,24 @@ void print_ultrasound_status() {
   }
 }
 #endif //CFOS_IN_ULTRASOUND && CFOS_OUT_SERIAL
+
+#if defined(CFOS_IN_ULTRASOUND) && defined(CFOS_OUT_MQTT)
+void send_mqtt_ultrasound_status() {
+  for(uint8_t i = 0; i < us_pincount; i++) {
+    uint32_t distance = us_duration[i] / 58;
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/duration_microsecs", chargepoint_id, us_sensor[i].sensor_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", us_duration[i]);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/distance_cm", chargepoint_id, us_sensor[i].sensor_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", distance);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/object_detected", chargepoint_id, us_sensor[i].sensor_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%s", distance==0?"no":"yes");
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+  }
+}
+#endif //CFOS_IN_ULTRASOUND && CFOS_OUT_MQTT
 

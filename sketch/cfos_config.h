@@ -32,9 +32,9 @@
 // Enable software features by uncommenting the #define directive (remove the //)
 // Which inputs are activated?
 #define CFOS_IN_S0
-//#define CFOS_IN_DIGITAL
-//#define CFOS_IN_ANALOG
-//#define CFOS_IN_ULTRASOUND
+#define CFOS_IN_DIGITAL
+#define CFOS_IN_ANALOG
+#define CFOS_IN_ULTRASOUND
 
 // Which networking feature is activated? (only one allowed)
 #define CFOS_NET_WIFI
