@@ -10,10 +10,10 @@
  * - Serial output begins with id_<chargepoint_id>:<ms_since_controller_start>:<newline \n>
  *   Example:
  *     id_CFMusterstadtGoethestr12:480068:
- * - Serial format for S0: s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_since_last_output>:<seconds since last impulse>:<newline \n>
+ * - Serial format for S0: s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_in_previous_update_timeframe>:<seconds since last impulse>:<newline \n>
  *   S0 example:
- *     s0_CounterA:300:6:0:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses since the last output and 0 seconds since the last impulse
- *     s0_CounterB:465:0:20: // s0 pin CounterB had 465 ms between the last two impulses, 0 impulses since the last output and 20 seconds since the last impulse
+ *     s0_CounterA:300:6:0:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses in the previous update timeframe and 0 seconds since the last impulse
+ *     s0_CounterB:465:0:20: // s0 pin CounterB had 465 ms between the last two impulses, 0 impulses in the previous update timeframe and 20 seconds since the last impulse
  * - Serial format for digital input: di_<pin_name>:<status on or off>:<newline \n>
  *   Digital input example:
  *     di_SpaceOccupied:on:
@@ -29,7 +29,7 @@
  *     us_CarDistance:0:0:      // nothing in range (timeout occured)
  */
 #include "cfos_types.h"
-// Enable software features by uncommenting the #define directive
+// Enable software features by uncommenting the #define directive (remove the //)
 #define INPUT_S0         1
 #define INPUT_DIGITAL    1
 #define INPUT_ANALOG     1
@@ -42,8 +42,14 @@
 
 // Unique name for the charging station
 const char* chargepoint_id = "CFMusterstadtGoethestr12";
-// Send updates every ... ms
-const uint32_t update_interval = 60000;
+// Length of update timeframe: Update sensors every ... ms
+const uint32_t sensor_update_interval = 15000;
+
+#if defined(OUTPUT_SERIAL)
+const uint32_t serial_baudrate = 115200;
+// Send serial updates every ... ms
+const uint32_t serial_output_interval = 60000;
+#endif // OUTPUT_SERIAL
 
 #if defined(INPUT_S0)
 // Definition of S0 inputs
@@ -102,7 +108,6 @@ const named_pin analog_input[] = {
 #endif //INPUT_ANALOG
 
 #if defined(INPUT_ULTRASOUND)
-
 // Definition of HC-SR04 ultrasound sensors
 const ultrasound_sensor us_sensor[] {
   {
