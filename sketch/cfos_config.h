@@ -30,28 +30,34 @@
  */
 #include "cfos_types.h"
 // Enable software features by uncommenting the #define directive (remove the //)
-#define INPUT_S0         1
-#define INPUT_DIGITAL    1
-#define INPUT_ANALOG     1
-#define INPUT_ULTRASOUND 1
-#define OUTPUT_SERIAL    1
-//#define OUTPUT_WIFI      1
-//#define OUTPUT_LAN       1
-//#define OUTPUT_LORA      1
-#define OUTPUT_GSM       1
+// Which inputs are activated?
+#define CFOS_IN_S0         1
+#define CFOS_IN_DIGITAL    1
+#define CFOS_IN_ANALOG     1
+#define CFOS_IN_ULTRASOUND 1
+
+// Which networking feature is activated?
+#define CFOS_NET_WIFI      1
+//#define CFOS_NET_LAN       1
+//#define CFOS_NET_LORA      1
+//#define CFOS_NET_GSM       1
+
+// Which output methods are activated
+#define CFOS_OUT_SERIAL    1
+#define CFOS_OUT_MQTT      1
 
 // Unique name for the charging station
 const char* chargepoint_id = "CFMusterstadtGoethestr12";
 // Length of update timeframe: Update sensors every ... ms
 const uint32_t sensor_update_interval = 15000;
 
-#if defined(OUTPUT_SERIAL)
+#if defined(CFOS_OUT_SERIAL)
 const uint32_t serial_baudrate = 115200;
 // Send serial updates every ... ms
 const uint32_t serial_output_interval = 60000;
-#endif // OUTPUT_SERIAL
+#endif // CFOS_OUT_SERIAL
 
-#if defined(INPUT_S0)
+#if defined(CFOS_IN_S0)
 // Definition of S0 inputs
 const named_pin s0[] = {
   {
@@ -69,9 +75,9 @@ const named_pin s0[] = {
     INPUT_PULLUP // pin mode    
   }
 };
-#endif //INPUT_S0
+#endif //CFOS_IN_S0
 
-#if defined(INPUT_DIGITAL)
+#if defined(CFOS_IN_DIGITAL)
 // Definition of digital inputs
 const named_pin digital_input[] = {
   {
@@ -89,9 +95,9 @@ const named_pin digital_input[] = {
     INPUT_PULLUP     // pin mode    
   }
 };
-#endif //INPUT_DIGITAL
+#endif //CFOS_IN_DIGITAL
 
-#if defined(INPUT_ANALOG)
+#if defined(CFOS_IN_ANALOG)
 // Definition of analog inputs
 // CAUTION: ESP8266 only has one analog input (A0) with a voltage range of 0V - 1V, 
 //          so you will need a 1:4 voltage divider (5V becomes 1V) to detect PP voltage.
@@ -105,9 +111,9 @@ const named_pin analog_input[] = {
     INPUT        // pin mode
   }
 };
-#endif //INPUT_ANALOG
+#endif //CFOS_IN_ANALOG
 
-#if defined(INPUT_ULTRASOUND)
+#if defined(CFOS_IN_ULTRASOUND)
 // Definition of HC-SR04 ultrasound sensors
 const ultrasound_sensor us_sensor[] {
   {
@@ -120,4 +126,4 @@ const ultrasound_sensor us_sensor[] {
     HIGH           // Echo ON value
   }
 };
-#endif //INPUT_ULTRASOUND
+#endif //CFOS_IN_ULTRASOUND
