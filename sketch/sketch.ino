@@ -58,7 +58,30 @@ uint32_t us_duration[us_pincount];
 #endif //CFOS_IN_ULTRASOUND
 
 void setup() {
+  last_sensor_update = 0;
+  init_serial();
+  init_inputs();
+
 #if defined(CFOS_OUT_SERIAL)
+  Serial.println("CfOnlinestatus initialisation complete.");
+#endif //CFOS_OUT_SERIAL
+}
+
+void loop() {
+  uint32_t current_time = millis();
+  read_s0_inputs();
+  if(((uint32_t)(current_time-last_sensor_update)) >= sensor_update_interval) {
+    last_sensor_update = current_time;
+    update_s0();
+    update_digital_input();
+    update_analog_input();
+    update_ultrasound();
+  }
+  print_serial_interval();
+}
+
+inline void init_serial() {
+  #if defined(CFOS_OUT_SERIAL)
   Serial.begin(serial_baudrate);
   // wait for serial connection
   while(!Serial) {}
@@ -91,7 +114,7 @@ void setup() {
   Serial.println(" HC-SR04 ultrasound sensor(s)");
 #endif //CFOS_IN_ULTRASOUND
 #if defined(CFOS_NET_WIFI)
-  Serial.println("WiFi connection (not implemented yet!)");
+  Serial.println("WiFi connection");
 #endif //CFOS_NET_WIFI
 #if defined(CFOS_NET_LAN)
   Serial.println("LAN connection (not implemented yet!)");
@@ -103,9 +126,9 @@ void setup() {
   Serial.println("GSM connection (not implemented yet!)");
 #endif //CFOS_NET_GSM
 #endif //CFOS_OUT_SERIAL
+}
 
-  last_sensor_update = 0;
-
+inline void init_inputs() {
 #if defined(CFOS_IN_S0)
   for(uint8_t i = 0; i < s0_pincount; i++) {
     pinMode(s0[i].pin_number, s0[i].pin_mode);
@@ -165,23 +188,6 @@ void setup() {
 #endif //CFOS_OUT_SERIAL
   }
 #endif //CFOS_IN_ULTRASOUND
-
-#if defined(CFOS_OUT_SERIAL)
-  Serial.println("CfOnlinestatus initialisation complete.");
-#endif //CFOS_OUT_SERIAL
-}
-
-void loop() {
-  uint32_t current_time = millis();
-  read_s0_inputs();
-  if(((uint32_t)(current_time-last_sensor_update)) >= sensor_update_interval) {
-    last_sensor_update = current_time;
-    update_s0();
-    update_digital_input();
-    update_analog_input();
-    update_ultrasound();
-  }
-  print_serial_interval();
 }
 
 inline void print_serial_interval() {

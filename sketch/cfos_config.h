@@ -31,25 +31,30 @@
 #include "cfos_types.h"
 // Enable software features by uncommenting the #define directive (remove the //)
 // Which inputs are activated?
-#define CFOS_IN_S0         1
-#define CFOS_IN_DIGITAL    1
-#define CFOS_IN_ANALOG     1
-#define CFOS_IN_ULTRASOUND 1
+#define CFOS_IN_S0
+#define CFOS_IN_DIGITAL
+#define CFOS_IN_ANALOG
+#define CFOS_IN_ULTRASOUND
 
 // Which networking feature is activated?
-#define CFOS_NET_WIFI      1
-//#define CFOS_NET_LAN       1
-//#define CFOS_NET_LORA      1
-//#define CFOS_NET_GSM       1
+#define CFOS_NET_WIFI
+//#define CFOS_NET_LAN
+//#define CFOS_NET_LORA
+//#define CFOS_NET_GSM
 
 // Which output methods are activated
-#define CFOS_OUT_SERIAL    1
-#define CFOS_OUT_MQTT      1
+#define CFOS_OUT_SERIAL
+#define CFOS_OUT_MQTT
 
 // Unique name for the charging station
 const char* chargepoint_id = "CFMusterstadtGoethestr12";
 // Length of update timeframe: Update sensors every ... ms
 const uint32_t sensor_update_interval = 15000;
+
+#if defined(CFOS_NET_WIFI)
+const char* wifi_ssid     = "WiFiSSID";
+const char* wifi_key      = "WiFiPresharedKey";
+#endif // CFOS_NET_WIFI
 
 #if defined(CFOS_OUT_SERIAL)
 const uint32_t serial_baudrate = 115200;
