@@ -32,22 +32,22 @@
 // Enable software features by uncommenting the #define directive (remove the //)
 // Which inputs are activated?
 #define CFOS_IN_S0
-#define CFOS_IN_DIGITAL
-#define CFOS_IN_ANALOG
-#define CFOS_IN_ULTRASOUND
+//#define CFOS_IN_DIGITAL
+//#define CFOS_IN_ANALOG
+//#define CFOS_IN_ULTRASOUND
 
-// Which networking feature is activated?
+// Which networking feature is activated? (only one allowed)
 #define CFOS_NET_WIFI
-//#define CFOS_NET_LAN
+//#define CFOS_NET_ETHERNET
 //#define CFOS_NET_LORA
 //#define CFOS_NET_GSM
 
-// Which output methods are activated
+// Which output methods are activated?
 #define CFOS_OUT_SERIAL
 #define CFOS_OUT_MQTT
 
 // Unique name for the charging station
-const char* chargepoint_id = "CFMusterstadtGoethestr12";
+const char* chargepoint_id = "MusterstadtGoethestr12";
 // Length of update timeframe: Update sensors every ... ms
 const uint32_t sensor_update_interval = 15000;
 
@@ -55,6 +55,15 @@ const uint32_t sensor_update_interval = 15000;
 const char* wifi_ssid     = "WiFiSSID";
 const char* wifi_key      = "WiFiPresharedKey";
 #endif //CFOS_NET_WIFI
+
+#if defined(CFOS_OUT_MQTT)
+// send MQTT updates every ... ms - don't use less than 30000
+const uint32_t mqtt_update_interval = 60000;
+const char*   mqtt_server = "192.168.178.21";
+const uint16_t  mqtt_port = 1883;
+const char* mqtt_username = NULL;
+const char* mqtt_password = NULL;
+#endif //CFOS_OUT_MQTT
 
 #if defined(CFOS_OUT_SERIAL)
 const uint32_t serial_baudrate = 115200;

@@ -19,13 +19,18 @@
 #error CfOnlinestatus does not know this hardware platform - please fix!
 #endif //Hardware
 
-#if (defined(CFOS_OUT_MQTT)) && (!defined(CFOS_NET_WIFI) && !defined(CFOS_NET_LAN) && !defined(CFOS_NET_LORA) && !defined(CFOS_NET_GSM))
+#if (defined(CFOS_OUT_MQTT)) && (!defined(CFOS_NET_WIFI) && !defined(CFOS_NET_ETHERNET) && !defined(CFOS_NET_LORA) && !defined(CFOS_NET_GSM))
 #error Network output selected, but no network access method defined
 #endif //Network check
+
+#if (defined(CFOS_NET_WIFI) && defined(CFOS_NET_ETHERNET)) || (defined(CFOS_NET_WIFI) && defined(CFOS_NET_LORA)) || (defined(CFOS_NET_WIFI) && defined(CFOS_NET_GSM)) || (defined(CFOS_NET_ETHERNET) && defined(CFOS_NET_LORA)) || (defined(CFOS_NET_ETHERNET) && defined(CFOS_NET_GSM))  || (defined(CFOS_NET_LORA) && defined(CFOS_NET_GSM))
+#error Only one network access method is allowed
+#endif //Network access
 
 #if defined(CFOS_NET_WIFI)
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
+WiFiClient wifi_client;
 #else //not ESP8266
 #error CfOnlinestatus does not know how to use WiFi with this device!
 #endif //ESP8266
@@ -33,6 +38,13 @@
 
 #if defined(CFOS_OUT_MQTT)
 #include <PubSubClient.h>
+PubSubClient mqtt_client;
+uint32_t last_mqtt_output;
+char mqtt_topic_buf[80];
+char mqtt_msg_buf[80];
+bool last_mqtt_connected;
+bool current_mqtt_connected;
+static_assert(mqtt_update_interval>29999, "MQTT update interval must be 30 seconds or more");
 #endif //CFOS_OUT_MQTT
 
 // Internal variables
@@ -70,6 +82,7 @@ void setup() {
   init_serial();
   init_inputs();
   init_network();
+  init_mqtt();
 
 #if defined(CFOS_OUT_SERIAL)
   Serial.println("CfOnlinestatus initialisation complete.");
@@ -86,7 +99,8 @@ void loop() {
     update_analog_input();
     update_ultrasound();
   }
-  print_serial_interval();
+  output_serial_interval();
+  output_mqtt_interval();
 }
 
 inline void init_serial() {
@@ -125,9 +139,9 @@ inline void init_serial() {
 #if defined(CFOS_NET_WIFI)
   Serial.println("WiFi connection");
 #endif //CFOS_NET_WIFI
-#if defined(CFOS_NET_LAN)
+#if defined(CFOS_NET_ETHERNET)
   Serial.println("LAN connection (not implemented yet!)");
-#endif //CFOS_NET_LAN
+#endif //CFOS_NET_ETHERNET
 #if defined(CFOS_NET_LORA)
   Serial.println("LoRaWAN connection (not implemented yet!)");
 #endif //CFOS_NET_LORA
@@ -223,7 +237,20 @@ inline void init_network() {
 #endif //CFOS_NET_WIFI
 }
 
-inline void print_serial_interval() {
+inline void init_mqtt() {
+#if defined(CFOS_OUT_MQTT)
+#if defined(CFOS_NET_WIFI)
+  mqtt_client.setClient(wifi_client);
+#endif //CFOS_NET_WIFI
+#if defined(CFOS_NET_ETHERNET)
+#error Ethernet is not implemented yet!
+  mqtt_client.setClient(ethernet_client);
+#endif //CFOS_NET_ETHERNET
+  mqtt_client.setServer(mqtt_server, mqtt_port);
+#endif //CFOS_OUT_MQTT
+}
+
+inline void output_serial_interval() {
 #if defined(CFOS_OUT_SERIAL)
   uint32_t current_time = millis();
   if(((uint32_t)(current_time-last_serial_output)) < serial_output_interval) {
@@ -250,6 +277,42 @@ inline void print_serial_interval() {
 #endif //CFOS_OUT_SERIAL
 }
 
+inline void output_mqtt_interval() {
+#if defined(CFOS_OUT_MQTT)
+  last_mqtt_connected = current_mqtt_connected;
+  current_mqtt_connected = mqtt_client.loop();
+  if(!current_mqtt_connected) {
+    // start reconnecting and wait 15s
+    last_mqtt_output = millis()-15000;
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/status", chargepoint_id);
+    mqtt_client.connect(chargepoint_id, mqtt_username, mqtt_password, mqtt_topic_buf, 0, 1, "offline");
+    delay(10);
+    return;
+  }
+  if(current_mqtt_connected && !last_mqtt_connected) {
+    // client has just successfully reconnected
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/status", chargepoint_id);
+    mqtt_client.publish(mqtt_topic_buf, "online");
+  }
+  uint32_t current_time = millis();
+  if(((uint32_t)(current_time-last_mqtt_output)) < serial_output_interval) {
+    return;
+  }
+  last_mqtt_output = current_time;
+#if defined(CFOS_IN_S0)
+  send_mqtt_s0_status();
+#endif //CFOS_IN_S0
+#if defined(CFOS_IN_DIGITAL)
+  send_mqtt_digital_input_status();
+#endif //CFOS_IN_DIGITAL
+#if defined(CFOS_IN_ANALOG)
+  send_mqtt_analog_input_status();
+#endif //CFOS_IN_ANALOG
+#if defined(CFOS_IN_ULTRASOUND)
+  send_mqtt_ultrasound_status();
+#endif //CFOS_IN_ULTRASOUND
+#endif //CFOS_OUT_MQTT
+}
 
 inline void read_s0_inputs() {
 #if defined(CFOS_IN_S0)
@@ -292,6 +355,26 @@ void print_s0_status() {
   }
 }
 #endif //CFOS_IN_S0 && CFOS_OUT_SERIAL
+
+#if defined(CFOS_IN_S0) && defined(CFOS_OUT_MQTT)
+inline void send_mqtt_s0_status() {
+  uint32_t current_time = millis();
+  for(uint8_t i = 0; i < s0_pincount; i++) {
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/lastspan", chargepoint_id, s0[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", last_s0_span[i]);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/impulses_timeframe", chargepoint_id, s0[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", impulses_in_previous_timeframe[i]);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/secs_since_last_impulse", chargepoint_id, s0[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", ((uint32_t)(current_time - last_s0_millis[i]))/1000);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+  }
+}
+#endif //CFOS_IN_S0 && CFOS_OUT_MQTT
 
 
 inline void update_digital_input() {
