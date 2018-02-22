@@ -1,5 +1,5 @@
 # CfOnlinestatus
-Remotely reading the status of an EV charging station and sending it to an endpoint
+Remotely reading the status of an EV charging station and sending it to an endpoint. The project is released under the MIT license (see LICENSE.txt or [online info about MIT license](https://choosealicense.com/licenses/mit/))
 
 This it the [main development thread (in German)](https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html), but we understand English as well. 
 
