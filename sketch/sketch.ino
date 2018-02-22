@@ -1,10 +1,11 @@
 /**
- * Arduino-Sketch for the online status of crowdfunded charging stations
+ * CfOnlinestatus
+ * Remotely reading the status of an EV charging station and sending it to an endpoint.
  * Repository: https://github.com/CFLadestationen/CfOnlinestatus
- * Development thread (in German): https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html
- * 
- * Configuration settings go into config.h
- * Only change here if you know what you're doing!
+ *
+ * Configuration settings go into cfos_config.h
+ * Only change here if you know what you're doing.
+ * If you add a bugfix, please submit it via GitHub!
  */
 #include "cfos_config.h"
 

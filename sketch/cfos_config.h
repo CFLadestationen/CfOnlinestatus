@@ -1,32 +1,7 @@
-
 /**
- * Arduino-Sketch for the online status of crowdfunded charging stations
+ * CfOnlinestatus
+ * Remotely reading the status of an EV charging station and sending it to an endpoint.
  * Repository: https://github.com/CFLadestationen/CfOnlinestatus
- * Development thread (in German): https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html
- * 
- * Current features
- * - Read an arbitrary number of S0 inputs, digital inputs, analog inputs and HC-SR04 ultrasound sensors
- * - Print the status of those inputs on the serial console
- * - Serial output begins with id_<chargepoint_id>:<ms_since_controller_start>:<newline \n>
- *   Example:
- *     id_CFMusterstadtGoethestr12:480068:
- * - Serial format for S0: s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_in_previous_update_timeframe>:<seconds since last impulse>:<newline \n>
- *   S0 example:
- *     s0_CounterA:300:6:0:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses in the previous update timeframe and 0 seconds since the last impulse
- *     s0_CounterB:465:0:20: // s0 pin CounterB had 465 ms between the last two impulses, 0 impulses in the previous update timeframe and 20 seconds since the last impulse
- * - Serial format for digital input: di_<pin_name>:<status on or off>:<newline \n>
- *   Digital input example:
- *     di_SpaceOccupied:on:
- *     di_ContactorOn:off:
- * - Serial format for analog input: ai_<pin_name>:<analog_value_as_uint8>:<low, mid or high>:<newline \n>
- *   Analog input example (low means <= off_value, high means > on_value, mid means in between the two)
- *     ai_PPVoltage:100:mid:
- *     ai_PPVoltage:80:low:
- *     ai_PPVoltage:220:high:
- * - Serial format for HC-SR04 ultrasound input: us_<sensor_name>:<delay_in_us_as_uint32>:<distance_in_cm_as_uint32>:<newline \n>
- *   Ultrasound example (If a timeout occurs, the printed delay and distance value is 0)
- *     us_CarDistance:5800:100: // 1m distance
- *     us_CarDistance:0:0:      // nothing in range (timeout occured)
  */
 #include "cfos_types.h"
 // Enable software features by uncommenting the #define directive (remove the //)
