@@ -3,6 +3,8 @@ Remotely reading the status of an EV charging station and sending it to an endpo
 
 This it the [main development thread (in German)](https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html), but we understand English as well. 
 
+[Slack Chat](https://cfonlinestatus.slack.com)
+
 ## Requirements
 To use this software, you will need
 - an EV charging station with a few readable sensors. Currently supported sensors are
