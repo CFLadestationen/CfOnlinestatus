@@ -434,11 +434,11 @@ void print_analog_input_status() {
     Serial.print(ai_value[i]);
     Serial.print(':');
     if(ai_value[i] > analog_input[i].on_value) {
-      Serial.print("high");
+      Serial.print("standby");
     } else if(ai_value[i] <= analog_input[i].off_value) {
-      Serial.print("low");
+      Serial.print("ready charging");
     } else {
-      Serial.print("mid");
+      Serial.print("vehicle detected");
     }
     Serial.println(":");
   }
@@ -454,11 +454,11 @@ void send_mqtt_analog_input_status() {
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ai_%s/meaning", chargepoint_id, analog_input[i].pin_name);
     if(ai_value[i] > analog_input[i].on_value) {
-      mqtt_client.publish(mqtt_topic_buf, "high");
+      mqtt_client.publish(mqtt_topic_buf, "standby");
     } else if(ai_value[i] <= analog_input[i].off_value) {
-      mqtt_client.publish(mqtt_topic_buf, "low");
+      mqtt_client.publish(mqtt_topic_buf, "ready charging");
     } else {
-      mqtt_client.publish(mqtt_topic_buf, "mid");
+      mqtt_client.publish(mqtt_topic_buf, "vehicle detected");
     }
     delay(10);
   }
