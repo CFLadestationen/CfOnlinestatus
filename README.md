@@ -10,7 +10,7 @@ To use this software, you will need
 - an EV charging station with a few readable sensors. Currently supported sensors are
   - S0 impulse counter (for an electricity meter that supports DIN EN 62053-31)
   - digital input pins (high- and low-active, with or without pull-up/pull-down)
-  - analog input pins (only 8 bit precision is used -- you can define 3 voltage thresholds for low, mid and high)
+  - analog input pins (for CP-PE voltage, only 8 bit precision is used -- you can define 3 voltage thresholds depending on used voltage divider for standby, vehicle detected and ready charging)
   - HC-SR04 ultrasound distance sensors
 - a compatible microcontroller platform (currently ESP8266 or Arduino)
 - an endpoint to receive the data output
@@ -53,11 +53,11 @@ di_ContactorOn:off:
 
 Serial format for analog input: `ai_<pin_name>:<analog_value_as_uint8>:<low, mid or high>:<newline \n>`
 
-Analog input example (low means <= off_value, high means > on_value, mid means in between the two):
+Analog input example (ready charging means <= off_value, standby means > on_value, vehicle detected means in between the two):
 ```
-ai_PPVoltage:100:mid:
-ai_PPVoltage:80:low:
-ai_PPVoltage:220:high:
+ai_PPVoltage:100:vehicle detected:
+ai_PPVoltage:80:ready charging:
+ai_PPVoltage:220:standby:
 ```
 
 Serial format for HC-SR04 ultrasound input: `us_<sensor_name>:<delay_in_us_as_uint32>:<distance_in_cm_as_uint32>:<newline \n>`
