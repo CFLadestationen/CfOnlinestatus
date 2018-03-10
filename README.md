@@ -82,3 +82,7 @@ The following MQTT topics are being published. All messages (even with numeric v
 - `CFOS/MusterCF/us_CarDistance/duration_microsecs`: Ultrasound pulse duration in microseconds (0 when timed out)
 - `CFOS/MusterCF/us_CarDistance/distance_cm`: Calculated object distance in cm (0 when timed out)
 - `CFOS/MusterCF/us_CarDistance/object_detected`: `no` (when timed out) or `yes`
+
+## MQTT Broker for GoingElectric Cf charging stations
+Use the central MQQT Broker IP: 46.38.232.97 TCP Port: 1883 for GoingElectric Cf charging stations only. 
+Please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com.
