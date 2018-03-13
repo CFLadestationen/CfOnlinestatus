@@ -23,8 +23,8 @@
 
 // Unique name for the charging station
 const char* chargepoint_id = "MusterstadtGoethestr12";
-// Length of update timeframe: Update sensors every ... ms
-const uint32_t sensor_update_interval = 15000;
+// Length of update timeframe: Update sensors every ... s
+const uint32_t sensor_update_interval_s = 15;
 
 #if defined(CFOS_NET_WIFI)
 const char* wifi_ssid     = "WiFiSSID";
@@ -32,8 +32,8 @@ const char* wifi_key      = "WiFiPresharedKey";
 #endif //CFOS_NET_WIFI
 
 #if defined(CFOS_OUT_MQTT)
-// send MQTT updates every ... ms - don't use less than 30000
-const uint32_t mqtt_update_interval = 60000;
+// send MQTT updates every ... s - don't use less than 30
+const uint32_t mqtt_update_interval_s = 60;
 const char*   mqtt_server = "192.168.178.21";
 const uint16_t  mqtt_port = 1883;
 const char* mqtt_username = NULL;
@@ -42,8 +42,8 @@ const char* mqtt_password = NULL;
 
 #if defined(CFOS_OUT_SERIAL)
 const uint32_t serial_baudrate = 115200;
-// Send serial updates every ... ms
-const uint32_t serial_output_interval = 60000;
+// Send serial updates every ... s
+const uint32_t serial_output_interval_s = 60;
 #endif //CFOS_OUT_SERIAL
 
 #if defined(CFOS_IN_S0)

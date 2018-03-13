@@ -45,13 +45,16 @@ char mqtt_topic_buf[80];
 char mqtt_msg_buf[80];
 bool last_mqtt_connected;
 bool current_mqtt_connected;
+const uint32_t mqtt_update_interval = 1000 * mqtt_update_interval_s;
 static_assert(mqtt_update_interval>29999, "MQTT update interval must be 30 seconds or more");
 #endif //CFOS_OUT_MQTT
 
 // Internal variables
 uint32_t last_sensor_update;
+const uint32_t sensor_update_interval = 1000 * sensor_update_interval_s;
 #if defined(CFOS_OUT_SERIAL)
 uint32_t last_serial_output;
+const uint32_t serial_output_interval = 1000 * serial_output_interval_s;
 #endif //CFOS_OUT_SERIAL
 #if defined(CFOS_IN_S0)
 const uint8_t s0_pincount = sizeof(s0)/sizeof(s0[0]);
