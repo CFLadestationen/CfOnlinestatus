@@ -343,6 +343,22 @@ inline void update_s0() {
 #endif //CFOS_IN_S0
 }
 
+#if defined(CFOS_IN_S0)
+inline uint32_t last_s0_watts(uint8_t pin) {
+  // Calculation:
+  //  impulses_per_h = impulses_in_previous_timeframe[pin] * 3600 / sensor_update_interval_s
+  //  wh_per_impulse = 1000/s0_impulses_per_kWh[pin]
+  //  w = wh_per_impulse * impulses_per_h
+  // best would be: first multiplication, then division
+  //  w = impulses_in_previous_timeframe[pin] * 3600 * 1000 / sensor_update_interval_s / s0_impulses_per_kWh[pin]
+  // problem: at 10000 imp/kWh, there can be 1875 impulses in 15s at 45kW power, so we get an overflow
+  // for uint32_t (1875 * 3600 * 1000 = 6.75e9, max for uint32_t is 4.2e9)
+  // Compromise: use the smallest divisor before the first potential overflow:
+  //  w = (((impulses_in_previous_timeframe[i] * 3600) / sensor_update_interval_s) * 1000) / s0_impulses_per_kWh
+  return (((impulses_in_previous_timeframe[pin] * 3600) / sensor_update_interval_s) * 1000) / s0_impulses_per_kWh[pin];
+}
+#endif //CFOS_IN_S0
+
 #if defined(CFOS_IN_S0) && defined(CFOS_OUT_SERIAL)
 void print_s0_status() {
   uint32_t current_time = millis();
@@ -355,7 +371,9 @@ void print_s0_status() {
     Serial.print(impulses_in_previous_timeframe[i]);
     Serial.print(':');
     Serial.print(((uint32_t)(current_time - last_s0_millis[i]))/1000);
-    Serial.println(":");
+    Serial.print(':');
+    Serial.print(last_s0_watts(i));
+    Serial.println(':');
   }
 }
 #endif //CFOS_IN_S0 && CFOS_OUT_SERIAL
@@ -374,6 +392,10 @@ inline void send_mqtt_s0_status() {
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/secs_since_last_impulse", chargepoint_id, s0[i].pin_name);
     snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", ((uint32_t)(current_time - last_s0_millis[i]))/1000);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/power", chargepoint_id, s0[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", last_s0_watts(i));
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
   }

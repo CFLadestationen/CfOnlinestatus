@@ -64,6 +64,11 @@ const named_pin s0[] = {
     INPUT_PULLUP // pin mode    
   }
 };
+const uint32_t s0_impulses_per_kWh[]
+{
+  1000, // 1000 impulses per kWh for first s0 pin
+  160   // 160 impulses per kWh for second s0 pin
+};
 #endif //CFOS_IN_S0
 
 #if defined(CFOS_IN_DIGITAL)

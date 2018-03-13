@@ -35,12 +35,12 @@ You can configure the interval between two serial outputs. Serial output begins 
 `id_<chargepoint_id>:<ms_since_controller_start>:<newline \n>`  
 Example: `id_MusterstadtGoethestr12:480068:`
 
-Serial format for S0 is `s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_in_previous_update_timeframe>:<seconds since last impulse>:<newline \n>`
+Serial format for S0 is `s0_<pin_name>:<ms_between_last_2_impulses>:<impulses_in_previous_update_timeframe>:<seconds_since_last_impulse>:<watt_in_previous>:<newline \n>`
 
 S0 example:
 ```
-s0_CounterA:300:6:0:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses in the previous update timeframe and 0 seconds since the last impulse
-s0_CounterB:465:0:20: // s0 pin CounterB had 465 ms between the last two impulses, 0 impulses in the previous update timeframe and 20 seconds since the last impulse
+s0_CounterA:300:6:0:1440:  // s0 pin CounterA had 300 ms between the last two impulses, 6 impulses in the previous update timeframe and 0 seconds since the last impulse for a power of 1440W in the previous update timeframe
+s0_CounterB:465:0:20:0: // s0 pin CounterB had 465 ms between the last two impulses, 0 impulses in the previous update timeframe and 20 seconds since the last impulse for a power of 0W in the previous update timeframe
 ```
 
 Serial format for digital input: `di_<pin_name>:<status on or off>:<newline \n>`
@@ -76,6 +76,7 @@ The following MQTT topics are being published. All messages (even with numeric v
 - `CFOS/MusterCF/s0_CounterA/lastspan`: the number of milliseconds between the last 2 impulses
 - `CFOS/MusterCF/s0_CounterA/impulses_timeframe`: the number of impulses in the last full update timespan (default: 15 seconds)
 - `CFOS/MusterCF/s0_CounterA/secs_since_last_impulse`: the number of seconds since the last impulse was received
+- `CFOS/MusterCF/s0_CounterA/power`: the power (in W) in the last full update timespan (default: 15 seconds)
 - `CFOS/MusterCF/di_SpaceOccupied/status`: `on` or  `off`
 - `CFOS/MusterCF/ai_PPVoltage/value`: The 8-bit unsigned value (0-255) of the analog conversion
 - `CFOS/MusterCF/ai_PPVoltage/meaning`: `low`, `mid` or `high` (see serial output)
