@@ -37,6 +37,19 @@ WiFiClient wifi_client;
 #endif //ESP8266
 #endif //CFOS_NET_WIFI
 
+#if defined(CFOS_NET_LORA)
+#if defined(ARDUINO_AVR_UNO)
+#include <TheThingsNetwork.h>
+#define DEBUGRATE 9600
+#define LORA_RATE 57600
+#define loraSerial Serial1
+#define debugSerial Serial
+TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
+#else //not ARDUINO_AVR_UNO
+#error CfOnlinestatus does not know how to use LoRa with this device!
+#endif //ARDUINO_AVR_UNO
+#endif //CFOS_NET_LORA
+
 #if defined(CFOS_OUT_MQTT)
 #include <PubSubClient.h>
 PubSubClient mqtt_client;

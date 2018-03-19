@@ -31,6 +31,14 @@ const char* wifi_ssid     = "WiFiSSID";
 const char* wifi_key      = "WiFiPresharedKey";
 #endif //CFOS_NET_WIFI
 
+#if defined(CFOS_NET_LORA)
+int8_t retries = -1;
+uint32_t retryDelay = 300000;
+const ttn_fp_t freqPlan = TTN_FP_EU868;
+const char* *appEui =     = "appEui";
+const char* *appKey =     = "appKey";
+#endif //CFOS_NET_LORA
+
 #if defined(CFOS_OUT_MQTT)
 // send MQTT updates every ... s - don't use less than 30
 const uint32_t mqtt_update_interval_s = 60;
