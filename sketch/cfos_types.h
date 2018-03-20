@@ -28,4 +28,16 @@ struct ultrasound_sensor {
   const uint8_t echo_on;
 };
 
+struct smartevse_pin {
+  const char* pin_name;
+  const uint8_t pin_number;
+  const uint32_t baudrate;
+};
+
+enum evse_state : uint8_t {
+  EVSE_STATE_A = 1, // not connected
+  EVSE_STATE_B = 2, // vehicle connected, not charging
+  EVSE_STATE_C = 3  // vehicle connected, charging
+};
+
 #endif //CFOS_TYPES_H

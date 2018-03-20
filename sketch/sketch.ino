@@ -50,6 +50,20 @@ TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
 #endif //ARDUINO_AVR_UNO
 #endif //CFOS_NET_LORA
 
+#if defined(CFOS_IN_SMARTEVSE)
+#if !defined(ESP8266)
+#error CfOnlinestatus only supports ESP8266 for SmartEVSE input!
+#endif //!ESP8266
+const uint8_t evse_pincount = sizeof(evse_input)/sizeof(evse_input[0]);
+static_assert(evse_pincount>0, "SmartEVSE input selected, but no SmartEVSE input pins defined");
+#include "SoftwareSerial.h"
+SoftwareSerial* evse_serial[evse_pincount];
+evse_state evse_status[evse_pincount];
+uint32_t last_evse_change[evse_pincount];
+char evse_buffer[evse_pincount][12];
+uint8_t evse_buffer_pos[evse_pincount];
+#endif //CFOS_IN_SMARTEVSE
+
 #if defined(CFOS_OUT_MQTT)
 #include <PubSubClient.h>
 PubSubClient mqtt_client;
@@ -100,6 +114,7 @@ void setup() {
   init_inputs();
   init_network();
   init_mqtt();
+  init_smartevse();
 
 #if defined(CFOS_OUT_SERIAL)
   Serial.println("CfOnlinestatus initialisation complete.");
@@ -109,6 +124,7 @@ void setup() {
 void loop() {
   uint32_t current_time = millis();
   read_s0_inputs();
+  read_evse_buffers();
   if(((uint32_t)(current_time-last_sensor_update)) >= sensor_update_interval) {
     last_sensor_update = current_time;
     update_s0();
@@ -153,6 +169,10 @@ inline void init_serial() {
   Serial.print(us_pincount);
   Serial.println(" HC-SR04 ultrasound sensor(s)");
 #endif //CFOS_IN_ULTRASOUND
+#if defined(CFOS_IN_SMARTEVSE)
+  Serial.print(evse_pincount);
+  Serial.println(" SmartEVSE serial input(s)");
+#endif //CFOS_IN_SMARTEVSE
 #if defined(CFOS_NET_WIFI)
   Serial.println("WiFi connection");
 #endif //CFOS_NET_WIFI
@@ -291,6 +311,9 @@ inline void output_serial_interval() {
 #if defined(CFOS_IN_ULTRASOUND)
   print_ultrasound_status();
 #endif //CFOS_IN_ULTRASOUND
+#if defined(CFOS_IN_SMARTEVSE)
+  print_evse_status();
+#endif //CFOS_IN_SMARTEVSE
 #endif //CFOS_OUT_SERIAL
 }
 
@@ -328,6 +351,9 @@ inline void output_mqtt_interval() {
 #if defined(CFOS_IN_ULTRASOUND)
   send_mqtt_ultrasound_status();
 #endif //CFOS_IN_ULTRASOUND
+#if defined(CFOS_IN_SMARTEVSE)
+  send_mqtt_evse_status();
+#endif //CFOS_IN_SMARTEVSE
 #endif //CFOS_OUT_MQTT
 }
 
@@ -550,4 +576,121 @@ void send_mqtt_ultrasound_status() {
   }
 }
 #endif //CFOS_IN_ULTRASOUND && CFOS_OUT_MQTT
+
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_SERIAL)
+void print_evse_status() {
+  uint32_t current_time = millis();
+  for(uint8_t i = 0; i < evse_pincount; i++) {
+    Serial.print("ev_");
+    Serial.print(evse_input[i].pin_name);
+    Serial.print(':');
+    if(evse_status[i] == EVSE_STATE_C) {
+      Serial.print("vehicle charging");
+    } else if(evse_status[i] == EVSE_STATE_B) {
+      Serial.print("vehicle detected");
+    } else {
+      Serial.print("standby");
+    }
+    Serial.print(':');
+    Serial.print(((uint32_t)(current_time - last_evse_change[i]))/1000);
+    Serial.println(':');
+  }
+}
+#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_SERIAL
+
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_MQTT)
+void send_mqtt_evse_status() {
+  uint32_t current_time = millis();
+  for(uint8_t i = 0; i < evse_pincount; i++) {
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ev_%s/status", chargepoint_id, evse_input[i].pin_name);
+    if(evse_status[i] == EVSE_STATE_C) {
+      mqtt_client.publish(mqtt_topic_buf, "vehicle charging");
+    } else if(evse_status[i] == EVSE_STATE_B) {
+      mqtt_client.publish(mqtt_topic_buf, "vehicle detected");
+    } else {
+      mqtt_client.publish(mqtt_topic_buf, "standby");
+    }
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ev_%s/secs_since_last_change", chargepoint_id, evse_input[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", ((uint32_t)(current_time - last_evse_change[i]))/1000);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+  }
+}
+#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_MQTT
+
+inline void init_smartevse() {
+  #if defined(CFOS_IN_SMARTEVSE)
+  for(uint8_t i = 0; i < evse_pincount; i++) {
+    // initialize read-only SoftwareSerial 
+    evse_serial[i] = new SoftwareSerial(evse_input[i].pin_number, SW_SERIAL_UNUSED_PIN, false, 256);
+    evse_status[i] = EVSE_STATE_A;
+    last_evse_change[i] = millis();
+    evse_buffer_pos[i] = 0;
+    evse_serial[i]->begin(evse_input[i].baudrate);
+    #if defined(CFOS_OUT_SERIAL)
+      Serial.print("Configured pin number ");
+      Serial.print(evse_input[i].pin_number);
+      Serial.print(" as SmartEVSE input pin named ");
+      Serial.print(evse_input[i].pin_name);
+      Serial.print(" with baudrate ");
+      Serial.println(evse_input[i].baudrate);
+    #endif //CFOS_OUT_SERIAL
+  }
+  #endif //CFOS_IN_SMARTEVSE
+}
+
+#if defined(CFOS_IN_SMARTEVSE)
+void check_evse_message(uint8_t pin) {
+  if(evse_buffer_pos[pin] < 10) return;
+  if(strncmp(evse_buffer[pin], "STATE ", 6) != 0 || evse_buffer[pin][7] != '-' || evse_buffer[pin][8] != '>') {
+    // no match - delete everything
+    evse_buffer_pos[pin] = 0;
+    return;
+  }
+  uint32_t current_time = millis();
+  // OK, we have a match for "STATE x->y" (we don't need x, only y)
+  switch(evse_buffer[pin][9]) {
+    case 'A':
+      evse_status[pin] = EVSE_STATE_A;
+      last_evse_change[pin] = current_time;
+      break;
+    case 'B':
+      evse_status[pin] = EVSE_STATE_B;
+      last_evse_change[pin] = current_time;
+      break;
+    case 'C':
+    case 'D':
+      evse_status[pin] = EVSE_STATE_C;
+      last_evse_change[pin] = current_time;
+      break;
+    default:
+      // invalid value
+      evse_buffer_pos[pin] = 0;
+      break;
+  }
+}
+#endif //CFOS_IN_SMARTEVSE
+
+// read from software serial buffers and wait for the message "STATE x->y", where x and y are A, B or C
+inline void read_evse_buffers() {
+  #if defined(CFOS_IN_SMARTEVSE)
+  for(uint8_t i = 0; i < evse_pincount; i++) {
+    while(evse_serial[i]->available()) {
+      yield();
+      char received = (char)evse_serial[i]->read();
+      if(received == 'S') {
+        // possible new STATE message starts
+        evse_buffer[i][0] = 'S';
+        evse_buffer_pos[i]=1;
+        continue;
+      }
+      evse_buffer[i][evse_buffer_pos[i]++] = received;
+      if(evse_buffer_pos[i] >= 10) {
+        check_evse_message(i);
+      }
+    }
+  }
+  #endif //CFOS_IN_SMARTEVSE
+}
 

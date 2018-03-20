@@ -12,6 +12,7 @@ To use this software, you will need
   - digital input pins (high- and low-active, with or without pull-up/pull-down)
   - analog input pins (for CP-PE voltage, only 8 bit precision is used -- you can define 3 voltage thresholds depending on used voltage divider for standby, vehicle detected and ready charging)
   - HC-SR04 ultrasound distance sensors
+  - the serial output of a [SmartEVSE](https://github.com/SmartEVSE/smartevse) deviced (due to the needed fast SoftwareSerial, this feature is currently ESP8266 only)
 - a compatible microcontroller platform (currently ESP8266 or Arduino)
 - an endpoint to receive the data output
   - serial interface
@@ -68,6 +69,14 @@ us_CarDistance:5800:100: // 1m distance
 us_CarDistance:0:0:      // nothing in range (timeout occured)
 ```
 
+Serial format for SmartEVSE serial input: `ev_<pin_name>:<status>:<seconds_since_last_status_change>:<newline \n>`
+
+SmartEVSE example (status is one of these 3: `standby`, `vehicle detected` (but not charging), or `vehicle charging`
+```
+ev_Type2Left:standby:3600:
+ev_Type2Right:vehicle detected:3:
+```
+
 ## MQTT Output
 With an active network/internet connection, CfOnlinestatus can send MQTT messages in a configurable interval. CfOnlinestatus uses its configured chargepoint_id as MQTT client id. Every published message begins with the topic `CFOS/<id>/`.
 
@@ -83,6 +92,8 @@ The following MQTT topics are being published. All messages (even with numeric v
 - `CFOS/MusterCF/us_CarDistance/duration_microsecs`: Ultrasound pulse duration in microseconds (0 when timed out)
 - `CFOS/MusterCF/us_CarDistance/distance_cm`: Calculated object distance in cm (0 when timed out)
 - `CFOS/MusterCF/us_CarDistance/object_detected`: `no` (when timed out) or `yes`
+- `CFOS/MusterCF/ev_Type2Right/status`: `standby`, `vehicle detected` (but not charging), or `vehicle charging`
+- `CFOS/MusterCF/ev_Type2Right/secs_since_last_change`: the number of seconds since the status has changed
 
 ## MQTT Broker for GoingElectric Cf charging stations
 Use the central MQTT Broker IP: 46.38.232.97 TCP Port: 1883 for GoingElectric Cf charging stations only. 
