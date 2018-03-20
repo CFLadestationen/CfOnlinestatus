@@ -135,12 +135,12 @@ const ultrasound_sensor us_sensor[] {
 // Used for reading the connection status of a SmartEVSE using software serial
 const smartevse_pin evse_input[] {
   {
-    "EVSE_Left",  // SmartEVSE name
+    "Type2Left",  // SmartEVSE name
     D0,           // SmartEVSE input pin
     115200        // SmartEVSE baudrate
   },
   {
-    "EVSE_Right", // SmartEVSE name
+    "Type2Right", // SmartEVSE name
     D7,           // SmartEVSE input pin
     115200        // SmartEVSE baudrate
   }

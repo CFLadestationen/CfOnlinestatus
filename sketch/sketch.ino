@@ -311,6 +311,9 @@ inline void output_serial_interval() {
 #if defined(CFOS_IN_ULTRASOUND)
   print_ultrasound_status();
 #endif //CFOS_IN_ULTRASOUND
+#if defined(CFOS_IN_SMARTEVSE)
+  print_evse_status();
+#endif //CFOS_IN_SMARTEVSE
 #endif //CFOS_OUT_SERIAL
 }
 
@@ -348,6 +351,9 @@ inline void output_mqtt_interval() {
 #if defined(CFOS_IN_ULTRASOUND)
   send_mqtt_ultrasound_status();
 #endif //CFOS_IN_ULTRASOUND
+#if defined(CFOS_IN_SMARTEVSE)
+  send_mqtt_evse_status();
+#endif //CFOS_IN_SMARTEVSE
 #endif //CFOS_OUT_MQTT
 }
 
@@ -571,6 +577,48 @@ void send_mqtt_ultrasound_status() {
 }
 #endif //CFOS_IN_ULTRASOUND && CFOS_OUT_MQTT
 
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_SERIAL)
+void print_evse_status() {
+  uint32_t current_time = millis();
+  for(uint8_t i = 0; i < evse_pincount; i++) {
+    Serial.print("ev_");
+    Serial.print(evse_input[i].pin_name);
+    Serial.print(':');
+    if(evse_status[i] == EVSE_STATE_C) {
+      Serial.print("vehicle charging");
+    } else if(evse_status[i] == EVSE_STATE_B) {
+      Serial.print("vehicle detected");
+    } else {
+      Serial.print("standby");
+    }
+    Serial.print(':');
+    Serial.print(((uint32_t)(current_time - last_evse_change[i]))/1000);
+    Serial.println(':');
+  }
+}
+#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_SERIAL
+
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_MQTT)
+void send_mqtt_evse_status() {
+  uint32_t current_time = millis();
+  for(uint8_t i = 0; i < evse_pincount; i++) {
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ev_%s/status", chargepoint_id, evse_input[i].pin_name);
+    if(evse_status[i] == EVSE_STATE_C) {
+      mqtt_client.publish(mqtt_topic_buf, "vehicle charging");
+    } else if(evse_status[i] == EVSE_STATE_B) {
+      mqtt_client.publish(mqtt_topic_buf, "vehicle detected");
+    } else {
+      mqtt_client.publish(mqtt_topic_buf, "standby");
+    }
+    delay(10);
+    snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ev_%s/secs_since_last_change", chargepoint_id, evse_input[i].pin_name);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%d", ((uint32_t)(current_time - last_evse_change[i]))/1000);
+    mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
+    delay(10);
+  }
+}
+#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_MQTT
+
 inline void init_smartevse() {
   #if defined(CFOS_IN_SMARTEVSE)
   for(uint8_t i = 0; i < evse_pincount; i++) {
@@ -600,20 +648,21 @@ void check_evse_message(uint8_t pin) {
     evse_buffer_pos[pin] = 0;
     return;
   }
+  uint32_t current_time = millis();
   // OK, we have a match for "STATE x->y" (we don't need x, only y)
   switch(evse_buffer[pin][9]) {
     case 'A':
       evse_status[pin] = EVSE_STATE_A;
-      last_evse_change[pin] = millis();
+      last_evse_change[pin] = current_time;
       break;
     case 'B':
       evse_status[pin] = EVSE_STATE_B;
-      last_evse_change[pin] = millis();
+      last_evse_change[pin] = current_time;
       break;
     case 'C':
     case 'D':
-      evse_status[pin] = EVSE_STATE_B;
-      last_evse_change[pin] = millis();
+      evse_status[pin] = EVSE_STATE_C;
+      last_evse_change[pin] = current_time;
       break;
     default:
       // invalid value
