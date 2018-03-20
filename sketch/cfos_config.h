@@ -10,6 +10,7 @@
 #define CFOS_IN_DIGITAL
 #define CFOS_IN_ANALOG
 #define CFOS_IN_ULTRASOUND
+#define CFOS_IN_SMARTEVSE
 
 // Which networking feature is activated? (only one allowed)
 #define CFOS_NET_WIFI
@@ -129,3 +130,19 @@ const ultrasound_sensor us_sensor[] {
   }
 };
 #endif //CFOS_IN_ULTRASOUND
+
+#if defined(CFOS_IN_SMARTEVSE)
+// Used for reading the connection status of a SmartEVSE using software serial
+const smartevse_pin evse_input[] {
+  {
+    "EVSE_Left",  // SmartEVSE name
+    D0,           // SmartEVSE input pin
+    115200        // SmartEVSE baudrate
+  },
+  {
+    "EVSE_Right", // SmartEVSE name
+    D7,           // SmartEVSE input pin
+    115200        // SmartEVSE baudrate
+  }
+};
+#endif //CFOS_IN_SMARTEVSE
