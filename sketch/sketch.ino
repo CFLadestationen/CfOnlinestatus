@@ -40,7 +40,7 @@ WiFiClient wifi_client;
 #if defined(CFOS_NET_LORA)
 #if defined(ARDUINO_AVR_UNO)
 #include <TheThingsNetwork.h>
-#define DEBUGRATE 9600
+#define DEBUGRATE 115200
 #define LORA_RATE 57600
 #define loraSerial Serial1
 #define debugSerial Serial
@@ -113,6 +113,7 @@ void setup() {
   init_serial();
   init_inputs();
   init_network();
+  init_lora();
   init_mqtt();
   init_smartevse();
 
@@ -180,7 +181,7 @@ inline void init_serial() {
   Serial.println("LAN connection (not implemented yet!)");
 #endif //CFOS_NET_ETHERNET
 #if defined(CFOS_NET_LORA)
-  Serial.println("LoRaWAN connection (not implemented yet!)");
+  Serial.println("LoRaWAN connection");
 #endif //CFOS_NET_LORA
 #if defined(CFOS_NET_GSM)
   Serial.println("GSM connection (not implemented yet!)");
@@ -638,6 +639,19 @@ inline void init_smartevse() {
     #endif //CFOS_OUT_SERIAL
   }
   #endif //CFOS_IN_SMARTEVSE
+}
+
+inline void init_lora() {
+  #if defined(CFOS_NET_LORA)
+  #if defined(CFOS_OUT_SERIAL)
+      Serial.print("Join TheThingsNetwork: ");
+  #endif //CFOS_OUT_SERIAL
+  debugSerial.begin(DEBUGRATE);
+  loraSerial.begin(LORA_RATE); 
+  while (!debugSerial && millis() < 10000);  
+  ttn.showStatus();
+  ttn.join(appEui, appKey); // OTAA
+  #endif //CFOS_NET_LORA
 }
 
 #if defined(CFOS_IN_SMARTEVSE)
