@@ -45,6 +45,19 @@ WiFiClient wifi_client;
 #define loraSerial Serial1
 #define debugSerial Serial
 TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
+byte payload[12];
+payload[0] = (int)0; //S0 Meter A power (watts)
+payload[1] = (int)0; //S0 Meter A power (watts)
+payload[2] = (int)0; //S0 Meter A power (watts)
+payload[3] = (int)0; //S0 Meter A power (watts)
+payload[4] = (int)0; //S0 Meter A power (watts)
+payload[5] = (int)0; //S0 Meter B power (watts)
+payload[6] = (int)0; //S0 Meter B power (watts)
+payload[7] = (int)0; //S0 Meter B power (watts)
+payload[8] = (int)9; //Digital In SpaceOccupied (0/1)
+payload[9] = (int)9; //Digital In ContactorOn (0/1)
+payload[10] = (int)9; //Analog In (0/1/2)
+payload[11] = (int)9; //Ultrasound object_detected (0/1)
 #else //not ARDUINO_AVR_UNO
 #error CfOnlinestatus does not know how to use LoRa with this device!
 #endif //ARDUINO_AVR_UNO
@@ -443,6 +456,22 @@ inline void send_mqtt_s0_status() {
 #endif //CFOS_IN_S0 && CFOS_OUT_MQTT
 
 
+#if defined(CFOS_IN_S0) && defined(CFOS_OUT_LORA)
+inline void send_lora_s0_status() {   
+  payload[0] = (int) ((last_s0_watts(0) & 0xFF000000) >> 24 );
+  payload[1] = (int) ((last_s0_watts(0) & 0x00FF0000) >> 16 );
+  payload[2] = (int) ((last_s0_watts(0) & 0x0000FF00) >> 8  );
+  payload[3] = (int) ((last_s0_watts(0) & 0X000000FF)       );
+  if(s0_pincount > 1) {
+      payload[4] = (int) ((last_s0_watts(1) & 0xFF000000) >> 24 );
+      payload[5] = (int) ((last_s0_watts(1) & 0x00FF0000) >> 16 );
+      payload[6] = (int) ((last_s0_watts(1) & 0x0000FF00) >> 8  );
+      payload[7] = (int) ((last_s0_watts(1) & 0X000000FF)       );
+  } 
+}
+#endif //CFOS_IN_S0 && CFOS_OUT_LORA
+
+
 inline void update_digital_input() {
 #if defined(CFOS_IN_DIGITAL)
   for(uint8_t i = 0; i < di_pincount; i++) {
@@ -481,6 +510,22 @@ void send_mqtt_digital_input_status() {
   }
 }
 #endif //CFOS_IN_DIGITAL && CFOS_OUT_MQTT
+
+#if defined(CFOS_IN_DIGITAL) && defined(CFOS_OUT_LORA)
+void send_lora_digital_input_status() {
+  if(di_value[0] == digital_input[0].on_value) {
+    payload[8] = (int)1;  
+    } else {
+    payload[8] = (int)0; 
+    }
+    if(di_value[1] == digital_input[1].on_value) {
+    payload[9] = (int)1;  
+    } else {
+    payload[9] = (int)0; 
+    } 
+  }
+}
+#endif //CFOS_IN_DIGITAL && CFOS_OUT_LORA
 
 inline void update_analog_input() {
 #if defined(CFOS_IN_ANALOG)
@@ -530,6 +575,19 @@ void send_mqtt_analog_input_status() {
 }
 #endif //CFOS_IN_ANALOG && CFOS_OUT_MQTT
 
+#if defined(CFOS_IN_ANALOG) && defined(CFOS_OUT_LORA)
+void send_lora_analog_input_status() {
+    if(ai_value[0] > analog_input[0].on_value) {      
+      payload[10] = 0; //standby
+    } else if(ai_value[0] <= analog_input[0].off_value) {     
+      payload[10] = (int)1; //ready charging
+    } else {      
+      payload[10] = (int)2; //vehicle detected
+    }
+  }
+}
+#endif //CFOS_IN_ANALOG && CFOS_OUT_LORA
+
 inline void update_ultrasound() {
 #if defined(CFOS_IN_ULTRASOUND)
   for(uint8_t i = 0; i < us_pincount; i++) {
@@ -578,6 +636,17 @@ void send_mqtt_ultrasound_status() {
 }
 #endif //CFOS_IN_ULTRASOUND && CFOS_OUT_MQTT
 
+#if defined(CFOS_IN_ULTRASOUND) && defined(CFOS_OUT_LORA)
+void send_lora_ultrasound_status() {
+    uint32_t distance = us_duration[i] / 58; 
+    if(distance<=0) {
+      payload[11] = (int)1; 
+    } else {
+      payload[11] = (int)0; 
+    }
+}
+#endif //CFOS_IN_ULTRASOUND && CFOS_OUT_LORA
+
 #if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_SERIAL)
 void print_evse_status() {
   uint32_t current_time = millis();
@@ -619,6 +688,7 @@ void send_mqtt_evse_status() {
   }
 }
 #endif //CFOS_IN_SMARTEVSE && CFOS_OUT_MQTT
+
 
 inline void init_smartevse() {
   #if defined(CFOS_IN_SMARTEVSE)
