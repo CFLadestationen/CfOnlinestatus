@@ -664,7 +664,7 @@ void send_mqtt_ultrasound_status() {
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/object_detected", chargepoint_id, us_sensor[i].sensor_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%s", distance==0?"no":"yes");
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%s", distance<=distance_occupied?"no":"yes");
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
   }

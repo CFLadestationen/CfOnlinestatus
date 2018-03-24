@@ -131,6 +131,7 @@ const ultrasound_sensor us_sensor[] {
     HIGH           // Echo ON value
   }
 };
+const uint32_t distance_occupied = 0;
 #endif //CFOS_IN_ULTRASOUND
 
 #if defined(CFOS_IN_SMARTEVSE)
