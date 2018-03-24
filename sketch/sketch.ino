@@ -40,6 +40,8 @@ WiFiClient wifi_client;
 #if defined(CFOS_NET_LORA)
 #if defined(ARDUINO_AVR_UNO)
 #include <TheThingsNetwork.h>
+const uint32_t lora_update_interval = 1000 * lora_update_interval_s;
+static_assert(lora_update_interval>59999, "MQTT update interval must be 60 seconds or more");
 #define DEBUGRATE 115200
 #define LORA_RATE 57600
 #define loraSerial Serial1
@@ -60,6 +62,7 @@ payload[10] = (int)9; //Analog In (0/1/2)
 payload[11] = (int)9; //Ultrasound object_detected (0/1)
 payload[12] = (int)9; //SmartEVSE A serial (0/1/2)
 payload[13] = (int)9; //SmartEVSE B serial (0/1/2)
+uint32_t last_lora_output;
 #else //not ARDUINO_AVR_UNO
 #error CfOnlinestatus does not know how to use LoRa with this device!
 #endif //ARDUINO_AVR_UNO
@@ -150,6 +153,7 @@ void loop() {
   }
   output_serial_interval();
   output_mqtt_interval();
+  output_lora_interval();
 }
 
 inline void init_serial() {
@@ -351,7 +355,7 @@ inline void output_mqtt_interval() {
     mqtt_client.publish(mqtt_topic_buf, "online");
   }
   uint32_t current_time = millis();
-  if(((uint32_t)(current_time-last_mqtt_output)) < serial_output_interval) {
+  if(((uint32_t)(current_time-last_mqtt_output)) < mqtt_update_interval) {
     return;
   }
   last_mqtt_output = current_time;
@@ -371,6 +375,35 @@ inline void output_mqtt_interval() {
   send_mqtt_evse_status();
 #endif //CFOS_IN_SMARTEVSE
 #endif //CFOS_OUT_MQTT
+}
+
+inline void output_lora_interval() {
+#if defined(CFOS_NET_LORA)
+  uint32_t current_time = millis();
+  if(((uint32_t)(current_time-last_lora_output)) < lora_update_interval) {
+    return;
+  }
+  last_lora_output = current_time;
+#if defined(CFOS_IN_S0)
+  send_lora_s0_status();
+#endif //CFOS_IN_S0
+#if defined(CFOS_IN_DIGITAL)
+  send_lora_digital_input_status();
+#endif //CFOS_IN_DIGITAL
+#if defined(CFOS_IN_ANALOG)
+  send_lora_analog_input_status();
+#endif //CFOS_IN_ANALOG
+#if defined(CFOS_IN_ULTRASOUND)
+  send_lora_ultrasound_status();
+#endif //CFOS_IN_ULTRASOUND
+#if defined(CFOS_IN_SMARTEVSE)
+  send_lora_evse_status();
+#endif //CFOS_IN_SMARTEVSE
+#if defined(CFOS_OUT_SERIAL)
+  Serial.print("Send data to TTN over LoRa: ");
+#endif //CFOS_OUT_SERIAL
+ttn.sendBytes(payload, sizeof(payload));
+#endif //CFOS_NET_LORA
 }
 
 inline void read_s0_inputs() {
@@ -458,7 +491,7 @@ inline void send_mqtt_s0_status() {
 #endif //CFOS_IN_S0 && CFOS_OUT_MQTT
 
 
-#if defined(CFOS_IN_S0) && defined(CFOS_OUT_LORA)
+#if defined(CFOS_IN_S0) && defined(CFOS_NET_LORA)
 inline void send_lora_s0_status() {   
   payload[0] = (int) ((last_s0_watts(0) & 0xFF000000) >> 24 );
   payload[1] = (int) ((last_s0_watts(0) & 0x00FF0000) >> 16 );
@@ -471,7 +504,7 @@ inline void send_lora_s0_status() {
       payload[7] = (int) ((last_s0_watts(1) & 0X000000FF)       );
   } 
 }
-#endif //CFOS_IN_S0 && CFOS_OUT_LORA
+#endif //CFOS_IN_S0 && CFOS_NET_LORA
 
 
 inline void update_digital_input() {
@@ -513,7 +546,7 @@ void send_mqtt_digital_input_status() {
 }
 #endif //CFOS_IN_DIGITAL && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_DIGITAL) && defined(CFOS_OUT_LORA)
+#if defined(CFOS_IN_DIGITAL) && defined(CFOS_NET_LORA)
 void send_lora_digital_input_status() {
   if(di_value[0] == digital_input[0].on_value) {
     payload[8] = (int)1;  
@@ -527,7 +560,7 @@ void send_lora_digital_input_status() {
     } 
   }
 }
-#endif //CFOS_IN_DIGITAL && CFOS_OUT_LORA
+#endif //CFOS_IN_DIGITAL && CFOS_NET_LORA
 
 inline void update_analog_input() {
 #if defined(CFOS_IN_ANALOG)
@@ -577,7 +610,7 @@ void send_mqtt_analog_input_status() {
 }
 #endif //CFOS_IN_ANALOG && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_ANALOG) && defined(CFOS_OUT_LORA)
+#if defined(CFOS_IN_ANALOG) && defined(CFOS_NET_LORA)
 void send_lora_analog_input_status() {
     if(ai_value[0] > analog_input[0].on_value) {      
       payload[10] = 0; //standby
@@ -588,7 +621,7 @@ void send_lora_analog_input_status() {
     }
   }
 }
-#endif //CFOS_IN_ANALOG && CFOS_OUT_LORA
+#endif //CFOS_IN_ANALOG && CFOS_NET_LORA
 
 inline void update_ultrasound() {
 #if defined(CFOS_IN_ULTRASOUND)
@@ -638,7 +671,7 @@ void send_mqtt_ultrasound_status() {
 }
 #endif //CFOS_IN_ULTRASOUND && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_ULTRASOUND) && defined(CFOS_OUT_LORA)
+#if defined(CFOS_IN_ULTRASOUND) && defined(CFOS_NET_LORA)
 void send_lora_ultrasound_status() {
     uint32_t distance = us_duration[i] / 58; 
     if(distance<=0) {
@@ -647,7 +680,7 @@ void send_lora_ultrasound_status() {
       payload[11] = (int)0; 
     }
 }
-#endif //CFOS_IN_ULTRASOUND && CFOS_OUT_LORA
+#endif //CFOS_IN_ULTRASOUND && CFOS_NET_LORA
 
 #if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_SERIAL)
 void print_evse_status() {
@@ -691,7 +724,7 @@ void send_mqtt_evse_status() {
 }
 #endif //CFOS_IN_SMARTEVSE && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_LORA)
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_NET_LORA)
 void send_lora_evse_status() {
   uint32_t current_time = millis();
   uint32_t secs_since_last_change;
@@ -711,7 +744,7 @@ void send_lora_evse_status() {
     }  
   }
 }
-#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_LORA
+#endif //CFOS_IN_SMARTEVSE && CFOS_NET_LORA
 
 
 inline void init_smartevse() {
@@ -747,6 +780,7 @@ inline void init_lora() {
   ttn.join(appEui, appKey); // OTAA
   #endif //CFOS_NET_LORA
 }
+
 
 #if defined(CFOS_IN_SMARTEVSE)
 void check_evse_message(uint8_t pin) {
