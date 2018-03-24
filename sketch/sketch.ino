@@ -58,6 +58,8 @@ payload[8] = (int)9; //Digital In SpaceOccupied (0/1)
 payload[9] = (int)9; //Digital In ContactorOn (0/1)
 payload[10] = (int)9; //Analog In (0/1/2)
 payload[11] = (int)9; //Ultrasound object_detected (0/1)
+payload[12] = (int)9; //SmartEVSE A serial (0/1/2)
+payload[13] = (int)9; //SmartEVSE B serial (0/1/2)
 #else //not ARDUINO_AVR_UNO
 #error CfOnlinestatus does not know how to use LoRa with this device!
 #endif //ARDUINO_AVR_UNO
@@ -580,7 +582,7 @@ void send_lora_analog_input_status() {
     if(ai_value[0] > analog_input[0].on_value) {      
       payload[10] = 0; //standby
     } else if(ai_value[0] <= analog_input[0].off_value) {     
-      payload[10] = (int)1; //ready charging
+      payload[10] = (int)1; //vehicle charging
     } else {      
       payload[10] = (int)2; //vehicle detected
     }
@@ -688,6 +690,28 @@ void send_mqtt_evse_status() {
   }
 }
 #endif //CFOS_IN_SMARTEVSE && CFOS_OUT_MQTT
+
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_LORA)
+void send_lora_evse_status() {
+  uint32_t current_time = millis();
+  uint32_t secs_since_last_change;
+    if(evse_status[0] == EVSE_STATE_C) {
+      payload[12] = 2; //vehicle charging
+    } else if(evse_status[0] == EVSE_STATE_B) {
+      payload[12] = 1; //vehicle detected
+    } else {
+      payload[12] = 0; //standby
+    }
+    if(evse_status[1] == EVSE_STATE_C) {
+      payload[13] = 2; //vehicle charging
+    } else if(evse_status[1] == EVSE_STATE_B) {
+      payload[13] = 1; //vehicle detected
+    } else {
+      payload[13] = 0; //standby
+    }  
+  }
+}
+#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_LORA
 
 
 inline void init_smartevse() {
