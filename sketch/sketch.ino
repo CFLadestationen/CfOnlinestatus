@@ -37,6 +37,17 @@ WiFiClient wifi_client;
 #endif //ESP8266
 #endif //CFOS_NET_WIFI
 
+#if defined(CFOS_NET_ETHERNET)
+#if defined(Arduino/Genuino Uno)
+#include <SPI.h>
+#include <Ethernet.h>
+byte mac[] = {0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02};
+EthernetClient ethernet_client;
+#else //not Arduino/Genuino Uno
+#error CfOnlinestatus does not know how to use Ethernet with this device!
+#endif //Arduino/Genuino Uno
+#endif //CFOS_NET_ETHERNET
+
 #if defined(CFOS_NET_LORA)
 #if defined(ARDUINO_AVR_UNO)
 #include <TheThingsNetwork.h>
@@ -292,7 +303,18 @@ inline void init_network() {
   }
 #endif //CFOS_OUT_SERIAL
 #endif //CFOS_NET_WIFI
+#if defined(CFOS_NET_ETHERNET)
+  Ethernet.begin(mac);
 }
+#if defined(CFOS_OUT_SERIAL)
+  Serial.print("Ethernet");
+  Serial.print("Requesting IP from DHCP");
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");
+  }
+#endif //CFOS_OUT_SERIAL
+printIPAddress();
+#endif //CFOS_NET_ETHERNET
 
 inline void init_mqtt() {
 #if defined(CFOS_OUT_MQTT)
@@ -300,7 +322,6 @@ inline void init_mqtt() {
   mqtt_client.setClient(wifi_client);
 #endif //CFOS_NET_WIFI
 #if defined(CFOS_NET_ETHERNET)
-#error Ethernet is not implemented yet!
   mqtt_client.setClient(ethernet_client);
 #endif //CFOS_NET_ETHERNET
   mqtt_client.setServer(mqtt_server, mqtt_port);
