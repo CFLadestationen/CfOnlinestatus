@@ -41,8 +41,9 @@ WiFiClient wifi_client;
 #if defined(Arduino/Genuino Uno)
 #include <SPI.h>
 #include <Ethernet.h>
-byte mac[] = {0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02};
 EthernetClient ethernet_client;
+const uint32_t ethernet_dhcp_renew_interval = 1000 * ethernet_dhcp_renew_s;
+uint32_t last_ethernet_dhcp_renew;
 #else //not Arduino/Genuino Uno
 #error CfOnlinestatus does not know how to use Ethernet with this device!
 #endif //Arduino/Genuino Uno
@@ -162,6 +163,7 @@ void loop() {
     update_analog_input();
     update_ultrasound();
   }
+  ethernet_renew_dhcp();
   output_serial_interval();
   output_mqtt_interval();
   output_lora_interval();
@@ -208,7 +210,7 @@ inline void init_serial() {
   Serial.println("WiFi connection");
 #endif //CFOS_NET_WIFI
 #if defined(CFOS_NET_ETHERNET)
-  Serial.println("LAN connection (not implemented yet!)");
+  Serial.println("LAN connection");
 #endif //CFOS_NET_ETHERNET
 #if defined(CFOS_NET_LORA)
   Serial.println("LoRaWAN connection");
@@ -304,17 +306,20 @@ inline void init_network() {
 #endif //CFOS_OUT_SERIAL
 #endif //CFOS_NET_WIFI
 #if defined(CFOS_NET_ETHERNET)
-  Ethernet.begin(mac);
-}
-#if defined(CFOS_OUT_SERIAL)
+  #if defined(CFOS_OUT_SERIAL)
   Serial.print("Ethernet");
   Serial.print("Requesting IP from DHCP");
+  #endif //CFOS_OUT_SERIAL
+  Ethernet.begin(mac);
   if (Ethernet.begin(mac) == 0) {
+    #if defined(CFOS_OUT_SERIAL)
     Serial.println("Failed to configure Ethernet using DHCP");
+    #endif //CFOS_OUT_SERIAL
   }
-#endif //CFOS_OUT_SERIAL
-printIPAddress();
+  printIPAddress();
 #endif //CFOS_NET_ETHERNET
+}
+
 
 inline void init_mqtt() {
 #if defined(CFOS_OUT_MQTT)
@@ -425,6 +430,20 @@ inline void output_lora_interval() {
 #endif //CFOS_OUT_SERIAL
 ttn.sendBytes(payload, sizeof(payload));
 #endif //CFOS_NET_LORA
+}
+
+inline void ethernet_renew_dhcp() {
+#if defined(CFOS_NET_ETHERNET)
+  uint32_t current_time = millis();
+  if(((uint32_t)(current_time-last_ethernet_dhcp_renew)) < ethernet_dhcp_renew_interval) {
+    return;
+  }
+  last_ethernet_dhcp_renew = current_time;
+#if defined(CFOS_OUT_SERIAL)
+  Serial.print("Renew Ethernet DHCP lease");
+#endif //CFOS_OUT_SERIAL
+  Ethernet.maintain();
+#endif //CFOS_NET_ETHERNET
 }
 
 inline void read_s0_inputs() {

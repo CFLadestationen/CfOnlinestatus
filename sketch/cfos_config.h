@@ -32,11 +32,16 @@ const char* wifi_ssid     = "WiFiSSID";
 const char* wifi_key      = "WiFiPresharedKey";
 #endif //CFOS_NET_WIFI
 
+#if defined(CFOS_NET_ETHERNET)
+const byte mac[] = {0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02};
+const uint32_t ethernet_dhcp_renew_s = 300;
+#endif //CFOS_NET_WIFI
+
 #if defined(CFOS_NET_LORA)
 // send TTN LoRa updates every ... s - don't use less than 60
 const uint32_t lora_update_interval_s = 60;
-int8_t retries = -1;
-uint32_t retryDelay = 300000;
+const int8_t retries = -1;
+const uint32_t retryDelay = 300000;
 const ttn_fp_t freqPlan = TTN_FP_EU868;
 const char* *appEui =     = "appEui";
 const char* *appKey =     = "appKey";
