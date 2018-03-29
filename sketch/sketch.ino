@@ -621,9 +621,9 @@ void print_analog_input_status() {
     if(ai_value[i] > analog_input[i].on_value) {
       Serial.print("standby");
     } else if(ai_value[i] <= analog_input[i].off_value) {
-      Serial.print("ready charging");
+      Serial.print("charging");
     } else {
-      Serial.print("vehicle detected");
+      Serial.print("detected");
     }
     Serial.println(":");
   }
@@ -641,9 +641,9 @@ void send_mqtt_analog_input_status() {
     if(ai_value[i] > analog_input[i].on_value) {
       mqtt_client.publish(mqtt_topic_buf, "standby");
     } else if(ai_value[i] <= analog_input[i].off_value) {
-      mqtt_client.publish(mqtt_topic_buf, "ready charging");
+      mqtt_client.publish(mqtt_topic_buf, "charging");
     } else {
-      mqtt_client.publish(mqtt_topic_buf, "vehicle detected");
+      mqtt_client.publish(mqtt_topic_buf, "detected");
     }
     delay(10);
   }
@@ -730,9 +730,9 @@ void print_evse_status() {
     Serial.print(evse_input[i].pin_name);
     Serial.print(':');
     if(evse_status[i] == EVSE_STATE_C) {
-      Serial.print("vehicle charging");
+      Serial.print("charging");
     } else if(evse_status[i] == EVSE_STATE_B) {
-      Serial.print("vehicle detected");
+      Serial.print("detected");
     } else {
       Serial.print("standby");
     }
@@ -749,9 +749,9 @@ void send_mqtt_evse_status() {
   for(uint8_t i = 0; i < evse_pincount; i++) {
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/ev_%s/status", chargepoint_id, evse_input[i].pin_name);
     if(evse_status[i] == EVSE_STATE_C) {
-      mqtt_client.publish(mqtt_topic_buf, "vehicle charging");
+      mqtt_client.publish(mqtt_topic_buf, "charging");
     } else if(evse_status[i] == EVSE_STATE_B) {
-      mqtt_client.publish(mqtt_topic_buf, "vehicle detected");
+      mqtt_client.publish(mqtt_topic_buf, "detected");
     } else {
       mqtt_client.publish(mqtt_topic_buf, "standby");
     }

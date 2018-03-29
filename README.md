@@ -1,9 +1,7 @@
 # CfOnlinestatus
 Remotely reading the status of an EV charging station and sending it to an endpoint. The project is released under the MIT license (see LICENSE.txt or [online info about MIT license](https://choosealicense.com/licenses/mit/))
 
-This it the [main development thread (in German)](https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html), but we understand English as well. 
-
-[Slack Chat](https://cfonlinestatus.slack.com)
+This it the [main development thread (in German)](https://www.goingelectric.de/forum/goingelectric-crowdfunding/neues-projekt-onlinestatus-fuer-crowdfunding-ladepunkte-t29325.html), but we understand English as well. We also have a [Slack Chat](https://cfonlinestatus.slack.com).
 
 ## Requirements
 To use this software, you will need
@@ -12,7 +10,7 @@ To use this software, you will need
   - digital input pins (high- and low-active, with or without pull-up/pull-down)
   - analog input pins (for CP-PE voltage, only 8 bit precision is used -- you can define 3 voltage thresholds depending on used voltage divider for standby, vehicle detected and ready charging)
   - HC-SR04 ultrasound distance sensors
-  - the serial output of a [SmartEVSE](https://github.com/SmartEVSE/smartevse) deviced (due to the needed fast SoftwareSerial, this feature is currently ESP8266 only)
+  - the serial output of a [SmartEVSE](https://github.com/SmartEVSE/smartevse) device (due to the needed fast SoftwareSerial, this feature is currently ESP8266 only)
 - a compatible microcontroller platform (currently ESP8266 or Arduino)
 - an endpoint to receive the data output
   - serial interface
@@ -52,12 +50,12 @@ di_SpaceOccupied:on:
 di_ContactorOn:off:
 ```
 
-Serial format for analog input: `ai_<pin_name>:<analog_value_as_uint8>:<low, mid or high>:<newline \n>`
-
-Analog input example (ready charging means <= off_value, standby means > on_value, vehicle detected means in between the two):
+Serial format for analog input: `ai_<pin_name>:<analog_value_as_uint8>:<charging, detected or standby>:<newline \n>`
+**Caution**: Some controllers only have a limited input voltage range. Be sure to transform the signal so that it fits the analog input range.
+Analog input example: `charging` means <= off_value (corresponds to EVSE state C or 6V), `standby` means > on_value (EVSE state A or 12V), `detected` means in between the two (EVSE state B or 9V)
 ```
-ai_PPVoltage:100:vehicle detected:
-ai_PPVoltage:80:ready charging:
+ai_PPVoltage:100:detected:
+ai_PPVoltage:80:charging:
 ai_PPVoltage:220:standby:
 ```
 
@@ -71,10 +69,10 @@ us_CarDistance:0:0:      // nothing in range (timeout occured)
 
 Serial format for SmartEVSE serial input: `ev_<pin_name>:<status>:<seconds_since_last_status_change>:<newline \n>`
 
-SmartEVSE example (status is one of these 3: `standby`, `vehicle detected` (but not charging), or `vehicle charging`
+SmartEVSE example (status is one of these 3: `standby` (state A), `detected` (but not charging, state B), or `charging` (state C)
 ```
-ev_Type2Left:standby:3600:
-ev_Type2Right:vehicle detected:3:
+ev_Type2Left:standby:3600:  // no connection, last change an hour ago
+ev_Type2Right:detected:3:   // 3 seconds ago, a cable was plugged in (or charging stopped)
 ```
 
 ## MQTT Output
@@ -88,11 +86,11 @@ The following MQTT topics are being published. All messages (even with numeric v
 - `CFOS/MusterCF/s0_CounterA/power`: the power (in W) in the last full update timespan (default: 15 seconds)
 - `CFOS/MusterCF/di_SpaceOccupied/status`: `on` or  `off`
 - `CFOS/MusterCF/ai_PPVoltage/value`: The 8-bit unsigned value (0-255) of the analog conversion
-- `CFOS/MusterCF/ai_PPVoltage/meaning`: `low`, `mid` or `high` (see serial output)
+- `CFOS/MusterCF/ai_PPVoltage/meaning`: `charging`, `detected` or `standby` (see serial output)
 - `CFOS/MusterCF/us_CarDistance/duration_microsecs`: Ultrasound pulse duration in microseconds (0 when timed out)
 - `CFOS/MusterCF/us_CarDistance/distance_cm`: Calculated object distance in cm (0 when timed out)
 - `CFOS/MusterCF/us_CarDistance/object_detected`: `no` (when timed out) or `yes`
-- `CFOS/MusterCF/ev_Type2Right/status`: `standby`, `vehicle detected` (but not charging), or `vehicle charging`
+- `CFOS/MusterCF/ev_Type2Right/status`: `standby`, `detected`, or `charging` (see serial output)
 - `CFOS/MusterCF/ev_Type2Right/secs_since_last_change`: the number of seconds since the status has changed
 
 ## MQTT Broker for GoingElectric Cf charging stations
