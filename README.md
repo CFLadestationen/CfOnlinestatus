@@ -5,28 +5,38 @@ This it the [main development thread (in German)](https://www.goingelectric.de/f
 
 ## Requirements
 To use this software, you will need
+- a compatible microcontroller platform (currently ESP8266 or Arduino). If you don't know what to use, buy the following:
+  - Microcontroller board: [WEMOS D1 mini Pro](https://wiki.wemos.cc/products:d1:d1_mini_pro) (under 5$/5€)
+  - Power supply: Any USB charger that provides 500 mA or more, e.g. [MeanWell HDR-15-5](http://www.meanwell.com/productPdf.aspx?i=751)
+  - Level shifter(s): The ESP8266 only supports 3.3V input, so you will need a [logic level converter](http://www.ebay.com/sch/?_nkw=logic%20level%20converter%203.3v) to connect 5V inputs
+  - Distance sensor: If you want to detect a parking vehicle, you can use a [HC-SR04P sensor](http://www.ebay.com/sch/?_nkw=hc-sr04p)
 - an EV charging station with a few readable sensors. Currently supported sensors are
   - S0 impulse counter (for an electricity meter that supports DIN EN 62053-31)
   - digital input pins (high- and low-active, with or without pull-up/pull-down)
-  - analog input pins (for CP-PE voltage, only 8 bit precision is used -- you can define 3 voltage thresholds depending on used voltage divider for standby, vehicle detected and ready charging)
+  - analog input pins (for CP-PE voltage, only 8 bit precision is used -- you can define voltage thresholds for the three possible states `standby`, (vehicle) `detected` and (vehicle) `charging`)
   - HC-SR04 ultrasound distance sensors
   - the serial output of a [SmartEVSE](https://github.com/SmartEVSE/smartevse) device (due to the needed fast SoftwareSerial, this feature is currently ESP8266 only)
-- a compatible microcontroller platform (currently ESP8266 or Arduino)
 - an endpoint to receive the data output
-  - serial interface
+  - serial interface on a connected PC or other device
   - MQTT server
+  - LoRaWAN gateway
   - (other endpoints may be implemented in the future)
 - a way to connect to a network (if you don't exclusively use serial output)
   - WiFi (currently ESP8266 only)
-  - Ethernet (currently not implemented)
-  - LoRaWAN (currently not implemented)
+  - Ethernet (currently Arduino only)
+  - LoRaWAN (currently Arduino only)
   - GSM (currently not implemented)
   
 ## Quickstart
 - Download or clone the repository
 - Edit sketch/cfos_config.h to suit your needs
-- In your Arduino IDE, add the correct board in the board manager (e.g. ESP8266) and any needed libraries (e.g. PubSubClient for MQTT)
+- In your Arduino IDE, add the correct board in the board manager
+  -  ESP8266
+- In your Arduino IDE, add any needed additional libraries
+  - PubSubClient for MQTT
+  - TheThingsNetwork for LoRaWAN
 - Compile and upload the sketch to your hardware
+- Connect all input pins
 - Profit! (hopefully)
 
 ## Serial output
