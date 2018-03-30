@@ -25,7 +25,7 @@ To use this software, you will need
 - a way to connect to a network (if you don't exclusively use serial output)
   - WiFi (currently ESP8266 only)
   - Ethernet (currently Arduino only)
-  - LoRaWAN (currently Arduino only), location must be covered by TheThingsNetwork Gateway
+  - LoRaWAN (currently Arduino only), location must be covered by TheThingsNetwork Gateway (see [TTN Mapper)](https://ttnmapper.org/))
   - GSM (currently not implemented)
   
 ## Quickstart
