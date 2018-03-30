@@ -40,4 +40,13 @@ enum evse_state : uint8_t {
   EVSE_STATE_C = 3  // vehicle connected, charging
 };
 
+struct lora_payload {
+  uint8_t digital_status; // up to 8 digital inputs, starting rightmost
+  uint8_t evse_status; // up to 4 evse statuses - analog and smartevse, starting rightmost
+                       // 0 is undefined, 1 is state A, 2 is state B, 3 is state C
+  uint8_t us_status; // up to 8 ultrasound inputs (vehicle present or not), starting rightmost
+  uint8_t s0_watts[4]; // power in steps of 200 Watt
+  uint8_t reserved; // reserved for future expansion
+};
+
 #endif //CFOS_TYPES_H

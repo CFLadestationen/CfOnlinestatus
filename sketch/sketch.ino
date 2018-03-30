@@ -53,7 +53,7 @@ uint32_t last_ethernet_dhcp_renew;
 #if defined(ARDUINO_AVR_UNO)
 #include <TheThingsNetwork.h>
 const uint32_t lora_update_interval = 1000 * lora_update_interval_s;
-static_assert(lora_update_interval>59999, "MQTT update interval must be 60 seconds or more");
+static_assert(lora_update_interval>59999, "LoRa update interval must be 60 seconds or more");
 #define DEBUGRATE 115200
 #define LORA_RATE 57600
 #define loraSerial Serial1
