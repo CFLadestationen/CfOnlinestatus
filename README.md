@@ -22,8 +22,8 @@ To use this software, you will need
   - MQTT server
   - TheThingsNetwork Application
   - (other endpoints may be implemented in the future)
-- in case of GoingElectric.de Crowdfunding charging station you can use the central services
-  - MQTT Broker IP: 46.38.232.97 TCP Port: 1883, please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com
+  - in case of GoingElectric.de Crowdfunding charging station you can use the central services
+    - MQTT Broker IP: 46.38.232.97 TCP Port: 1883, please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com
 - a way to connect to a network (if you don't exclusively use serial output)
   - WiFi (currently ESP8266 only)
   - Ethernet (currently Arduino only)
