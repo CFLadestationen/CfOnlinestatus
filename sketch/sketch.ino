@@ -7,10 +7,13 @@
  * Only change here if you know what you're doing.
  * If you add a bugfix, please submit it via GitHub!
  */
+
 #include "cfos_config.h"
 
 #if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 #define CFOS_HARDWARE_PLATFORM ("WeMos D1 R2 & mini")
+#elif defined(ESP8266_WEMOS_D1MINIPRO)
+#define CFOS_HARDWARE_PLATFORM ("WeMos D1 mini Pro")
 #elif defined(ESP8266)
 #define CFOS_HARDWARE_PLATFORM ("Generic ESP8266")
 #elif defined(ARDUINO_AVR_UNO)
@@ -20,14 +23,14 @@
 #error CfOnlinestatus does not know this hardware platform - please fix!
 #endif //Hardware
 
-#if (defined(CFOS_OUT_MQTT)) && (!defined(CFOS_NET_WIFI) && !defined(CFOS_NET_ETHERNET) && !defined(CFOS_NET_LORA) && !defined(CFOS_NET_GSM))
-#error Network output selected, but no network access method defined
+#if (defined(CFOS_OUT_MQTT)) && (!defined(CFOS_NET_WIFI) && !defined(CFOS_NET_ETHERNET) && !defined(CFOS_NET_GSM))
+#error MQTT output selected, but no network access method defined
 #endif //Network check
 
-#if (defined(CFOS_NET_WIFI) && defined(CFOS_NET_ETHERNET)) || (defined(CFOS_NET_WIFI) && defined(CFOS_NET_LORA)) || (defined(CFOS_NET_WIFI) && defined(CFOS_NET_GSM)) || (defined(CFOS_NET_ETHERNET) && defined(CFOS_NET_LORA)) || (defined(CFOS_NET_ETHERNET) && defined(CFOS_NET_GSM))  || (defined(CFOS_NET_LORA) && defined(CFOS_NET_GSM))
+#if (defined(CFOS_NET_WIFI) && defined(CFOS_NET_ETHERNET)) || (defined(CFOS_NET_WIFI) && defined(CFOS_NET_GSM)) || (defined(CFOS_NET_ETHERNET) && defined(CFOS_NET_GSM))
 #error Only one network access method is allowed
 #endif //Network access
-
+ 
 #if defined(CFOS_NET_WIFI)
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
@@ -49,7 +52,7 @@ uint32_t last_ethernet_dhcp_renew;
 #endif //Arduino/Genuino Uno
 #endif //CFOS_NET_ETHERNET
 
-#if defined(CFOS_NET_LORA)
+#if defined(CFOS_OUT_LORA)
 #if defined(ARDUINO_AVR_UNO)
 #include <TheThingsNetwork.h>
 const uint32_t lora_update_interval = 1000 * lora_update_interval_s;
@@ -78,7 +81,7 @@ uint32_t last_lora_output;
 #else //not ARDUINO_AVR_UNO
 #error CfOnlinestatus does not know how to use LoRa with this device!
 #endif //ARDUINO_AVR_UNO
-#endif //CFOS_NET_LORA
+#endif //CFOS_OUT_LORA
 
 #if defined(CFOS_IN_SMARTEVSE)
 #if !defined(ESP8266)
@@ -212,9 +215,9 @@ inline void init_serial() {
 #if defined(CFOS_NET_ETHERNET)
   Serial.println("LAN connection");
 #endif //CFOS_NET_ETHERNET
-#if defined(CFOS_NET_LORA)
+#if defined(CFOS_OUT_LORA)
   Serial.println("LoRaWAN connection");
-#endif //CFOS_NET_LORA
+#endif //CFOS_OUT_LORA
 #if defined(CFOS_NET_GSM)
   Serial.println("GSM connection (not implemented yet!)");
 #endif //CFOS_NET_GSM
@@ -404,7 +407,7 @@ inline void output_mqtt_interval() {
 }
 
 inline void output_lora_interval() {
-#if defined(CFOS_NET_LORA)
+#if defined(CFOS_OUT_LORA)
   uint32_t current_time = millis();
   if(((uint32_t)(current_time-last_lora_output)) < lora_update_interval) {
     return;
@@ -429,7 +432,7 @@ inline void output_lora_interval() {
   Serial.print("Send data to TTN over LoRa: ");
 #endif //CFOS_OUT_SERIAL
 ttn.sendBytes(payload, sizeof(payload));
-#endif //CFOS_NET_LORA
+#endif //CFOS_OUT_LORA
 }
 
 inline void ethernet_renew_dhcp() {
@@ -531,7 +534,7 @@ inline void send_mqtt_s0_status() {
 #endif //CFOS_IN_S0 && CFOS_OUT_MQTT
 
 
-#if defined(CFOS_IN_S0) && defined(CFOS_NET_LORA)
+#if defined(CFOS_IN_S0) && defined(CFOS_OUT_LORA)
 inline void send_lora_s0_status() {   
   payload[0] = (int) ((last_s0_watts(0) & 0xFF000000) >> 24 );
   payload[1] = (int) ((last_s0_watts(0) & 0x00FF0000) >> 16 );
@@ -544,7 +547,7 @@ inline void send_lora_s0_status() {
       payload[7] = (int) ((last_s0_watts(1) & 0X000000FF)       );
   } 
 }
-#endif //CFOS_IN_S0 && CFOS_NET_LORA
+#endif //CFOS_IN_S0 && CFOS_OUT_LORA
 
 
 inline void update_digital_input() {
@@ -586,7 +589,7 @@ void send_mqtt_digital_input_status() {
 }
 #endif //CFOS_IN_DIGITAL && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_DIGITAL) && defined(CFOS_NET_LORA)
+#if defined(CFOS_IN_DIGITAL) && defined(CFOS_OUT_LORA)
 void send_lora_digital_input_status() {
   if(di_value[0] == digital_input[0].on_value) {
     payload[8] = (int)1;  
@@ -600,7 +603,7 @@ void send_lora_digital_input_status() {
     } 
   }
 }
-#endif //CFOS_IN_DIGITAL && CFOS_NET_LORA
+#endif //CFOS_IN_DIGITAL && CFOS_OUT_LORA
 
 inline void update_analog_input() {
 #if defined(CFOS_IN_ANALOG)
@@ -650,7 +653,7 @@ void send_mqtt_analog_input_status() {
 }
 #endif //CFOS_IN_ANALOG && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_ANALOG) && defined(CFOS_NET_LORA)
+#if defined(CFOS_IN_ANALOG) && defined(CFOS_OUT_LORA)
 void send_lora_analog_input_status() {
     if(ai_value[0] > analog_input[0].on_value) {      
       payload[10] = 0; //standby
@@ -661,7 +664,7 @@ void send_lora_analog_input_status() {
     }
   }
 }
-#endif //CFOS_IN_ANALOG && CFOS_NET_LORA
+#endif //CFOS_IN_ANALOG && CFOS_OUT_LORA
 
 inline void update_ultrasound() {
 #if defined(CFOS_IN_ULTRASOUND)
@@ -704,14 +707,14 @@ void send_mqtt_ultrasound_status() {
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/object_detected", chargepoint_id, us_sensor[i].sensor_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%s", distance<=distance_occupied?"no":"yes");
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%s", (distance>us_sensor[i].free_distance || distance==0)?"no":"yes");
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
   }
 }
 #endif //CFOS_IN_ULTRASOUND && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_ULTRASOUND) && defined(CFOS_NET_LORA)
+#if defined(CFOS_IN_ULTRASOUND) && defined(CFOS_OUT_LORA)
 void send_lora_ultrasound_status() {
     uint32_t distance = us_duration[i] / 58; 
     if(distance<=0) {
@@ -720,7 +723,7 @@ void send_lora_ultrasound_status() {
       payload[11] = (int)0; 
     }
 }
-#endif //CFOS_IN_ULTRASOUND && CFOS_NET_LORA
+#endif //CFOS_IN_ULTRASOUND && CFOS_OUT_LORA
 
 #if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_SERIAL)
 void print_evse_status() {
@@ -764,7 +767,7 @@ void send_mqtt_evse_status() {
 }
 #endif //CFOS_IN_SMARTEVSE && CFOS_OUT_MQTT
 
-#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_NET_LORA)
+#if defined(CFOS_IN_SMARTEVSE) && defined(CFOS_OUT_LORA)
 void send_lora_evse_status() {
   uint32_t current_time = millis();
   uint32_t secs_since_last_change;
@@ -784,7 +787,7 @@ void send_lora_evse_status() {
     }  
   }
 }
-#endif //CFOS_IN_SMARTEVSE && CFOS_NET_LORA
+#endif //CFOS_IN_SMARTEVSE && CFOS_OUT_LORA
 
 
 inline void init_smartevse() {
@@ -809,7 +812,7 @@ inline void init_smartevse() {
 }
 
 inline void init_lora() {
-  #if defined(CFOS_NET_LORA)
+  #if defined(CFOS_OUT_LORA)
   #if defined(CFOS_OUT_SERIAL)
       Serial.print("Join TheThingsNetwork: ");
   #endif //CFOS_OUT_SERIAL
@@ -818,7 +821,7 @@ inline void init_lora() {
   while (!debugSerial && millis() < 10000);  
   ttn.showStatus();
   ttn.join(appEui, appKey); // OTAA
-  #endif //CFOS_NET_LORA
+  #endif //CFOS_OUT_LORA
 }
 
 

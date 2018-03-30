@@ -26,6 +26,7 @@ struct ultrasound_sensor {
   const uint8_t trigger_on;
   const uint8_t trigger_off;
   const uint8_t echo_on;
+  const uint8_t free_distance;
 };
 
 struct smartevse_pin {

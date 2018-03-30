@@ -5,25 +5,37 @@
  */
 #include "cfos_types.h"
 // Enable software features by uncommenting the #define directive (remove the //)
-// Which inputs are activated?
+
+// INPUT METHODS: Which inputs are activated?
+// digital S0 power meter input
 #define CFOS_IN_S0
+// generic digital input
 #define CFOS_IN_DIGITAL
+// analog input to determine the EV state (standby/connected/charging)
 #define CFOS_IN_ANALOG
+// hc-sr04p ultrasound input to determine if a vehicle is parked
 #define CFOS_IN_ULTRASOUND
+// serial input from a SmartEVSE to determine the EV state (standby/connected/charging)
 #define CFOS_IN_SMARTEVSE
 
-// Which networking feature is activated? (only one allowed)
+// NETWORK ACCESS: Which networking feature is activated? (only one allowed)
+// ESP8266 WiFi
 #define CFOS_NET_WIFI
+// Arduino Ethernet shield
 //#define CFOS_NET_ETHERNET
-//#define CFOS_NET_LORA
+// Arduino GSM shield
 //#define CFOS_NET_GSM
 
-// Which output methods are activated?
+// OUTPUT METHODS: Which output methods are activated?
+// Serial output of the controller
 #define CFOS_OUT_SERIAL
+// MQTT output (network access needed)
 #define CFOS_OUT_MQTT
+// LoRaWAN output
+//#define CFOS_OUT_LORA
 
-// Unique name for the charging station
-const char* chargepoint_id = "MusterstadtGoethestr12";
+// Unique identifier for the charging station (use the GoingElectric charge point number)
+const char* chargepoint_id = "100000";
 // Length of update timeframe: Update sensors every ... s
 const uint32_t sensor_update_interval_s = 15;
 
@@ -37,23 +49,23 @@ const byte mac[] = {0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02};
 const uint32_t ethernet_dhcp_renew_s = 300;
 #endif //CFOS_NET_WIFI
 
-#if defined(CFOS_NET_LORA)
+#if defined(CFOS_OUT_LORA)
 // send TTN LoRa updates every ... s - don't use less than 60
 const uint32_t lora_update_interval_s = 60;
 const int8_t retries = -1;
 const uint32_t retryDelay = 300000;
 const ttn_fp_t freqPlan = TTN_FP_EU868;
-const char* *appEui =     = "appEui";
-const char* *appKey =     = "appKey";
-#endif //CFOS_NET_LORA
+const char* appEui = "appEui";
+const char* appKey = "appKey";
+#endif //CFOS_OUT_LORA
 
 #if defined(CFOS_OUT_MQTT)
 // send MQTT updates every ... s - don't use less than 30
 const uint32_t mqtt_update_interval_s = 60;
-const char*   mqtt_server = "192.168.178.21";
+const char*   mqtt_server = "46.38.232.97";
 const uint16_t  mqtt_port = 1883;
-const char* mqtt_username = NULL;
-const char* mqtt_password = NULL;
+const char* mqtt_username = chargepoint_id;
+const char* mqtt_password = "";
 #endif //CFOS_OUT_MQTT
 
 #if defined(CFOS_OUT_SERIAL)
@@ -130,13 +142,13 @@ const ultrasound_sensor us_sensor[] {
     "CarDistance", // sensor name
     D8,            // Trigger pin
     D6,            // Echo pin
-    20000,         // Timeout in us - multiply max distance by 58, add 10% safety margin
+    20000,         // Timeout in us - multiply max distance in cm by 58, add 10% safety margin
     HIGH,          // Trigger ON value
     LOW,           // Trigger OFF value
-    HIGH           // Echo ON value
+    HIGH,          // Echo ON value
+    250            // How many cm must be free so that this space is considered free?
   }
 };
-const uint32_t distance_occupied = 0;
 #endif //CFOS_IN_ULTRASOUND
 
 #if defined(CFOS_IN_SMARTEVSE)
