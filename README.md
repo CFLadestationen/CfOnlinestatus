@@ -104,6 +104,7 @@ The following MQTT topics are being published. All messages (even with numeric v
 - `CFOS/MusterCF/ev_Type2Right/status`: `standby`, `detected`, or `charging` (see serial output)
 - `CFOS/MusterCF/ev_Type2Right/secs_since_last_change`: the number of seconds since the status has changed
 
-## MQTT Broker for GoingElectric Cf charging stations
+## Endpints for GoingElectric Crowdfunding charging stations
+### MQTT Broker for GoingElectric Cf charging stations
 Use the central MQTT Broker IP: 46.38.232.97 TCP Port: 1883 for GoingElectric Cf charging stations only. 
 Please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com.
