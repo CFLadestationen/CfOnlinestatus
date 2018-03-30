@@ -6,10 +6,11 @@ This it the [main development thread (in German)](https://www.goingelectric.de/f
 ## Requirements
 To use this software, you will need
 - a compatible microcontroller platform (currently ESP8266 or Arduino). If you don't know what to use, buy the following:
-  - Microcontroller board: [WEMOS D1 mini Pro](https://wiki.wemos.cc/products:d1:d1_mini_pro) (under 5$/5€)
-  - Power supply: Any USB charger that provides 500 mA or more, e.g. [MeanWell HDR-15-5](http://www.meanwell.com/productPdf.aspx?i=751)
+  - Microcontroller board: [WEMOS D1 mini Pro](https://wiki.wemos.cc/products:d1:d1_mini_pro) (under 10$/10€)
+  - Power supply: Any USB charger that provides a **stable** 500 mA or more, e.g. [MeanWell HDR-15-5](http://www.meanwell.com/productPdf.aspx?i=751)
   - Level shifter(s): The ESP8266 only supports 3.3V input, so you will need a [logic level converter](http://www.ebay.com/sch/?_nkw=logic%20level%20converter%203.3v) to connect 5V inputs
   - Distance sensor: If you want to detect a parking vehicle, you can use a [HC-SR04P sensor](http://www.ebay.com/sch/?_nkw=hc-sr04p)
+  - External WiFi antenna: for better WiFi reception, get an [antenna with an u.fl connector](http://www.ebay.com/sch/?_nkw=u.fl%20antenna)
 - an EV charging station with a few readable sensors. Currently supported sensors are
   - S0 impulse counter (for an electricity meter that supports DIN EN 62053-31)
   - digital input pins (high- and low-active, with or without pull-up/pull-down)
