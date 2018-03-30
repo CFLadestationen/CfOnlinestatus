@@ -22,6 +22,8 @@ To use this software, you will need
   - MQTT server
   - TheThingsNetwork Application
   - (other endpoints may be implemented in the future)
+- in case of GoingElectric.de Crowdfunding charging station you can use the central services
+  - MQTT Broker IP: 46.38.232.97 TCP Port: 1883, please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com
 - a way to connect to a network (if you don't exclusively use serial output)
   - WiFi (currently ESP8266 only)
   - Ethernet (currently Arduino only)
@@ -103,8 +105,3 @@ The following MQTT topics are being published. All messages (even with numeric v
 - `CFOS/MusterCF/us_CarDistance/object_detected`: `no` (when timed out) or `yes`
 - `CFOS/MusterCF/ev_Type2Right/status`: `standby`, `detected`, or `charging` (see serial output)
 - `CFOS/MusterCF/ev_Type2Right/secs_since_last_change`: the number of seconds since the status has changed
-
-## Endpoints for GoingElectric Crowdfunding charging stations
-### MQTT Broker
-Use the central MQTT Broker IP: 46.38.232.97 TCP Port: 1883 for GoingElectric Cf charging stations only. 
-Please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com.
