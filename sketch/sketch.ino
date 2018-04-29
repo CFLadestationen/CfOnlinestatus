@@ -12,7 +12,7 @@
 
 #if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 #define CFOS_HARDWARE_PLATFORM ("WeMos D1 R2 & mini")
-#elif defined(ESP8266_WEMOS_D1MINIPRO)
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
 #define CFOS_HARDWARE_PLATFORM ("WeMos D1 mini Pro")
 #elif defined(ESP8266)
 #define CFOS_HARDWARE_PLATFORM ("Generic ESP8266")
@@ -151,17 +151,41 @@ void loop() {
   uint32_t current_time = millis();
   read_s0_inputs();
   read_evse_buffers();
+  read_cp_input();
   if(((uint32_t)(current_time-last_sensor_update)) >= sensor_update_interval) {
     last_sensor_update = current_time;
     update_s0();
     update_digital_input();
-    update_analog_input();
+    //update_analog_input();
     update_ultrasound();
   }
   ethernet_renew_dhcp();
   output_serial_interval();
   output_mqtt_interval();
   output_lora_interval();
+}
+
+uint8_t analogvals[100];
+uint8_t analogpos=0;
+uint16_t analogsum = 0;
+uint32_t last_nonzero_analog = 0;
+
+void read_cp_input() {
+  uint8_t val = (uint8_t)(analogRead(A0)/4);
+  if(val > 20) {
+    last_nonzero_analog = millis();
+    analogsum -= analogvals[analogpos];
+    analogvals[analogpos++] = val;
+    analogsum += val;
+    if(analogpos >= 100) {
+      analogpos = 0;
+    }
+  } else if((uint32_t)(millis()-last_nonzero_analog) > 1000) {
+    analogsum = 0;
+    for(uint8_t i = 0; i < 100; i++) {
+      analogvals[i]=0;
+    }
+  }
 }
 
 inline void init_serial() {
@@ -355,6 +379,8 @@ inline void output_serial_interval() {
   print_evse_status();
 #endif //CFOS_IN_SMARTEVSE
 #endif //CFOS_OUT_SERIAL
+Serial.print("Analog sum: ");
+Serial.println(analogsum);
 }
 
 inline void output_mqtt_interval() {
@@ -503,19 +529,19 @@ inline void send_mqtt_s0_status() {
   uint32_t current_time = millis();
   for(uint8_t i = 0; i < s0_pincount; i++) {
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/lastspan", chargepoint_id, s0[i].pin_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%ld", last_s0_span[i]);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%" PRIu32, last_s0_span[i]);
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/impulses_timeframe", chargepoint_id, s0[i].pin_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%ld", impulses_in_previous_timeframe[i]);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%" PRIu32, impulses_in_previous_timeframe[i]);
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/secs_since_last_impulse", chargepoint_id, s0[i].pin_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%ld", ((uint32_t)(current_time - last_s0_millis[i]))/1000);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%" PRIu32, ((uint32_t)(current_time - last_s0_millis[i]))/1000);
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/s0_%s/power", chargepoint_id, s0[i].pin_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%ld", last_s0_watts(i));
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%" PRIu32, last_s0_watts(i));
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
   }
@@ -663,11 +689,11 @@ void send_mqtt_ultrasound_status() {
   for(uint8_t i = 0; i < us_pincount; i++) {
     uint32_t distance = us_duration[i] / 58;
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/duration_microsecs", chargepoint_id, us_sensor[i].sensor_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%ld", us_duration[i]);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%" PRIu32, us_duration[i]);
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/distance_cm", chargepoint_id, us_sensor[i].sensor_name);
-    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%ld", distance);
+    snprintf(mqtt_msg_buf, sizeof(mqtt_msg_buf), "%" PRIu32, distance);
     mqtt_client.publish(mqtt_topic_buf, mqtt_msg_buf);
     delay(10);
     snprintf(mqtt_topic_buf, sizeof(mqtt_topic_buf), "CFOS/%s/us_%s/object_detected", chargepoint_id, us_sensor[i].sensor_name);

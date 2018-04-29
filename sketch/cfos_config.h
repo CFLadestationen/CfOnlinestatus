@@ -8,19 +8,19 @@
 
 // INPUT METHODS: Which inputs are activated?
 // digital S0 power meter input
-#define CFOS_IN_S0
+//#define CFOS_IN_S0
 // generic digital input
-#define CFOS_IN_DIGITAL
+//#define CFOS_IN_DIGITAL
 // analog input to determine the EV state (standby/connected/charging)
 #define CFOS_IN_ANALOG
 // hc-sr04p ultrasound input to determine if a vehicle is parked
-#define CFOS_IN_ULTRASOUND
+//#define CFOS_IN_ULTRASOUND
 // serial input from a SmartEVSE to determine the EV state (standby/connected/charging)
-#define CFOS_IN_SMARTEVSE
+//#define CFOS_IN_SMARTEVSE
 
 // NETWORK ACCESS: Which networking feature is activated? (only one allowed)
 // ESP8266 WiFi
-#define CFOS_NET_WIFI
+//#define CFOS_NET_WIFI
 // Arduino Ethernet shield
 //#define CFOS_NET_ETHERNET
 // Arduino GSM shield
@@ -30,14 +30,14 @@
 // Serial output of the controller
 #define CFOS_OUT_SERIAL
 // MQTT output (network access needed)
-#define CFOS_OUT_MQTT
+//#define CFOS_OUT_MQTT
 // LoRaWAN output
 //#define CFOS_OUT_LORA
 
 // Unique identifier for the charging station (use the GoingElectric charge point number)
 const char* chargepoint_id = "100000";
 // Length of update timeframe: Update sensors every ... s
-const uint32_t sensor_update_interval_s = 15;
+const uint32_t sensor_update_interval_s = 5;
 
 #if defined(CFOS_NET_WIFI)
 const char* wifi_ssid     = "WiFiSSID";
@@ -75,7 +75,7 @@ const char* mqtt_password = "";
 #if defined(CFOS_OUT_SERIAL)
 const uint32_t serial_baudrate = 115200;
 // Send serial updates every ... s
-const uint32_t serial_output_interval_s = 60;
+const uint32_t serial_output_interval_s = 5;
 #endif //CFOS_OUT_SERIAL
 
 #if defined(CFOS_IN_S0)
@@ -125,14 +125,17 @@ const named_pin digital_input[] = {
 
 #if defined(CFOS_IN_ANALOG)
 // Definition of analog inputs
-// CAUTION: ESP8266 only has one analog input (A0) with a voltage range of 0V - 1V, 
-//          so you will need a 1:4 voltage divider (5V becomes 1V) to detect PP voltage.
+// CAUTION: ESP8266 only has one analog input (A0) with a voltage range of 0V - 1V
+// Connect Wemos D1 mini Pro like this: PE to GND, CP to 1N4148 (->|-) to 820k to 56k to A0 pin
+// The Wemos D1 mini Pro has an internal divider 220k to 100k
+// which means a total divider of 1100k to 100k so that +12V becomes +1V at the ESP pin
+
 const named_pin analog_input[] = {
   {
-    "PPVoltage",   // pin name
+    "CPStatus",    // pin name
     A0,            // pin number
-    217, // 0.85 V // "high" voltage (for SAE J1772: PP = not connected)
-    87,  // 0.34 V // "low" voltage (for SAE J1772: PP = connected)
+    220, // 0.85 V // "high" voltage (for SAE J1772: PP = not connected)
+    20,  // 0.34 V // "low" voltage (for SAE J1772: PP = connected)
     // if value is between the two limits, it is considered "mid" (for SAE J1772: PP = button pressed)
     INPUT        // pin mode
   }
