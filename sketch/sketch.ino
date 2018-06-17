@@ -261,6 +261,45 @@ inline void init_inputs() {
   }
 }
 
+String p2n(uint8_t pin) {
+  switch(pin) {
+    case D0:
+      return "D0";
+      break;
+    case D1:
+      return "D1";
+      break;
+    case D2:
+      return "D2";
+      break;
+    case D3:
+      return "D3";
+      break;
+    case D4:
+      return "D4";
+      break;
+    case D5:
+      return "D5";
+      break;
+    case D6:
+      return "D6";
+      break;
+    case D7:
+      return "D7";
+      break;
+    case D8:
+      return "D8";
+      break;
+    case A0:
+      return "A0";
+      break;
+  }
+  return "INVALID";
+}
+uint8_t n2p(String name) {
+  return 0;
+}
+
 inline void init_network() {
   if(configured && strlen(cfg.wifi_ssid) > 0) {
     WiFi.mode(WIFI_STA);
@@ -291,6 +330,8 @@ inline void init_network() {
 }
 
 void ConfigPage() {
+  String page;
+  page += "";
   webserver.send(200, "text/plain", "Hallo");
 }
 

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+CfOnlinestatus configuration dialog
+	</title>
+  </head>
+  <body>
+   <h1>CfOnlinestatus configuration dialog</h1>
+   <form action="" method="POST">
+    <input type="hidden" id="really" value="yes" />
+    <button type="reset">Reset HTML form to start value</button>
+	<br />
+	<fieldset>
+	  <legend>General settings</legend>
+    <label for="chargepoint_id">CFOS chargepoint_id</label>
+    <input id="chargepoint_id" value="%%%chargepoint_id%%%">
+	<br />
+	<label for="sensor_update_interval_s">Sensor update interval (seconds)</label>
+    <input id="sensor_update_interval_s" value="%%%sensor_update_interval_s%%%">
+	<br />
+	<label for="serial_baudrate">Serial baudrate</label>
+    <input id="serial_baudrate" value="%%%serial_baudrate%%%">
+	<br />
+	<label for="serial_output_interval_s">Serial output interval (seconds)</label>
+    <input id="serial_output_interval_s" value="%%%serial_output_interval_s%%%">
+	<br />
+	<label for="factory_default">Type FACTORYDEFAULT in this field and click on update to reset the complete configuration</label>
+    <input id="factory_default" value="">
+	<br />
+	</fieldset>
+	<fieldset>
+	  <legend>WiFi Settings</legend>
+	<label for="wifi_ssid">WiFi SSID</label>
+    <input id="wifi_ssid" value="%%%wifi_ssid%%%">
+	<br />
+	<label for="wifi_key">WiFi Password</label>
+    <input id="wifi_key" value="%%%wifi_key%%%">
+	<br />
+	</fieldset>
+
+	
+<fieldset>
+	  <legend>MQTT settings</legend>
+	<label for="mqtt_server">MQTT Servername or IP</label>
+    <input id="mqtt_server" value="%%%mqtt_server%%%">
+	<br />
+	<label for="mqtt_port">MQTT port number</label>
+    <input id="mqtt_port" value="%%%mqtt_port%%%">
+	<br />
+	<label for="mqtt_username">MQTT username</label>
+    <input id="mqtt_username" value="%%%mqtt_username%%%">
+	<br />
+	<label for="mqtt_password">MQTT password (or empty)</label>
+    <input id="mqtt_password" value="%%%mqtt_password%%%">
+	<br />
+	<label for="mqtt_update_interval_s">MQTT output interval (seconds)</label>
+    <input id="mqtt_update_interval_s" value="%%%mqtt_update_interval_s%%%">
+	<br />
+</fieldset>
+	
+	
+	<fieldset>
+	  <legend>S0 input count</legend>
+	  <input type="radio" id="input_count_s0_0" name="input_count_s0" value="0" %%%input_count_s0_0%%%>
+	  <label for="input_count_s0_0"> no S0 input</label>
+	  <input type="radio" id="input_count_s0_1" name="input_count_s0" value="1" %%%input_count_s0_1%%%>
+	  <label for="input_count_s0_1"> 1 S0 input</label>
+	  <input type="radio" id="input_count_s0_2" name="input_count_s0" value="2" %%%input_count_s0_2%%%>
+	  <label for="input_count_s0_2"> 2 S0 inputs</label>
+	</fieldset>
+	<fieldset>
+	  <legend>first S0 input</legend>
+	<label for="s0_0_pin_name">S0 input 0 name</label>
+    <input id="s0_0_pin_name" value="%%%s0_0_pin_name%%%">
+	<br />
+	<label for="s0_0_pin_number">S0 input 0 number</label>
+    <input id="s0_0_pin_number" value="%%%s0_0_pin_number%%%">
+	<br />
+	  <input type="radio" id="s0_0_on_value_HIGH" name="s0_0_on_value" value="HIGH" %%%s0_0_on_value_HIGH%%%>
+	  <label for="s0_0_on_value_HIGH"> S0_0 on=HIGH</label>
+	  <input type="radio" id="s0_0_on_value_LOW" name="s0_0_on_value" value="LOW" %%%s0_0_on_value_LOW%%%>
+	  <label for="s0_0_on_value_LOW"> S0_0 on=LOW</label>
+	<br />
+	  <input type="radio" id="s0_0_off_value_HIGH" name="s0_0_off_value" value="HIGH" %%%s0_0_off_value_HIGH%%%>
+	  <label for="s0_0_off_value_HIGH"> S0_0 off=HIGH</label>
+	  <input type="radio" id="s0_0_off_value_LOW" name="s0_0_off_value" value="LOW" %%%s0_0_off_value_LOW%%%>
+	  <label for="s0_0_off_value_LOW"> S0_0 off=LOW</label>
+	  <br />
+	  <input type="radio" id="s0_0_pinmode_INPUT" name="s0_0_pinmode" value="INPUT" %%%s0_0_pinmode_INPUT%%%>
+	  <label for="s0_0_pinmode_INPUT"> S0_0 off=HIGH</label>
+	  <input type="radio" id="s0_0_pinmode_INPUT_PULLUP" name="s0_0_pinmode" value="INPUT_PULLUP" %%%s0_0_pinmode_INPUT_PULLUP%%%>
+	  <label for="s0_0_pinmode_INPUT_PULLUP"> S0_0 off=LOW</label>
+	  <br />
+	<label for="s0_0_impulses_per_kWh">S0 input 0 impulses per kWh</label>
+    <input id="s0_0_impulses_per_kWh" value="%%%s0_0_impulses_per_kWh%%%">
+	</fieldset>
+		<fieldset>
+	  <legend>second S0 input</legend>
+	<label for="s0_1_pin_name">S0 input 1 name</label>
+    <input id="s0_1_pin_name" value="%%%s0_1_pin_name%%%">
+	<br />
+	<label for="s0_1_pin_number">S0 input 1 number</label>
+    <input id="s0_1_pin_number" value="%%%s0_1_pin_number%%%">
+	<br />
+	  <input type="radio" id="s0_1_on_value_HIGH" name="s0_1_on_value" value="HIGH" %%%s0_1_on_value_HIGH%%%>
+	  <label for="s0_1_on_value_HIGH"> S0_1 on=HIGH</label>
+	  <input type="radio" id="s0_1_on_value_LOW" name="s0_1_on_value" value="LOW" %%%s0_1_on_value_LOW%%%>
+	  <label for="s0_1_on_value_LOW"> S0_1 on=LOW</label>
+	<br />
+	  <input type="radio" id="s0_1_off_value_HIGH" name="s0_1_off_value" value="HIGH" %%%s0_1_off_value_HIGH%%%>
+	  <label for="s0_1_off_value_HIGH"> S0_1 off=HIGH</label>
+	  <input type="radio" id="s0_1_off_value_LOW" name="s0_1_off_value" value="LOW" %%%s0_1_off_value_LOW%%%>
+	  <label for="s0_1_off_value_LOW"> S0_1 off=LOW</label>
+	  <br />
+	  <input type="radio" id="s0_1_pinmode_INPUT" name="s0_1_pinmode" value="INPUT" %%%s0_1_pinmode_INPUT%%%>
+	  <label for="s0_1_pinmode_INPUT"> S0_1 off=HIGH</label>
+	  <input type="radio" id="s0_1_pinmode_INPUT_PULLUP" name="s0_1_pinmode" value="INPUT_PULLUP" %%%s0_1_pinmode_INPUT_PULLUP%%%>
+	  <label for="s0_1_pinmode_INPUT_PULLUP"> S0_1 off=LOW</label>
+	  <br />
+	<label for="s0_1_impulses_per_kWh">S0 input 1 impulses per kWh</label>
+    <input id="s0_1_impulses_per_kWh" value="%%%s0_1_impulses_per_kWh%%%">
+	</fieldset>
+	
+	
+	<br />
+	<fieldset>
+	  <legend>digital input count</legend>
+	  <input type="radio" id="input_count_di_0" name="input_count_di" value="0" %%%input_count_di_0%%%>
+	  <label for="input_count_di_0"> no digital input</label>
+	  <input type="radio" id="input_count_di_1" name="input_count_di" value="1" %%%input_count_di_1%%%>
+	  <label for="input_count_di_1"> 1 digital input</label>
+	  <input type="radio" id="input_count_di_2" name="input_count_di" value="2" %%%input_count_di_2%%%>
+	  <label for="input_count_di_2"> 2 digital inputs</label>
+	</fieldset>
+		<fieldset>
+	  <legend>first digital input</legend>
+	<label for="di_0_pin_name">digital input 0 name</label>
+    <input id="di_0_pin_name" value="%%%di_0_pin_name%%%">
+	<br />
+	<label for="di_0_pin_number">digital input 0 number</label>
+    <input id="di_0_pin_number" value="%%%di_0_pin_number%%%">
+	<br />
+	  <input type="radio" id="di_0_on_value_HIGH" name="di_0_on_value" value="HIGH" %%%di_0_on_value_HIGH%%%>
+	  <label for="di_0_on_value_HIGH"> digital_0 on=HIGH</label>
+	  <input type="radio" id="di_0_on_value_LOW" name="di_0_on_value" value="LOW" %%%di_0_on_value_LOW%%%>
+	  <label for="di_0_on_value_LOW"> digital_0 on=LOW</label>
+	<br />
+	  <input type="radio" id="di_0_off_value_HIGH" name="di_0_off_value" value="HIGH" %%%di_0_off_value_HIGH%%%>
+	  <label for="di_0_off_value_HIGH"> digital_0 off=HIGH</label>
+	  <input type="radio" id="di_0_off_value_LOW" name="di_0_off_value" value="LOW" %%%di_0_off_value_LOW%%%>
+	  <label for="di_0_off_value_LOW"> digital_0 off=LOW</label>
+	  <br />
+	  <input type="radio" id="di_0_pinmode_INPUT" name="di_0_pinmode" value="INPUT" %%%di_0_pinmode_INPUT%%%>
+	  <label for="di_0_pinmode_INPUT"> digital_0 off=HIGH</label>
+	  <input type="radio" id="di_0_pinmode_INPUT_PULLUP" name="di_0_pinmode" value="INPUT_PULLUP" %%%di_0_pinmode_INPUT_PULLUP%%%>
+	  <label for="di_0_pinmode_INPUT_PULLUP"> digital_0 off=LOW</label>
+	</fieldset>
+	<fieldset>
+	  <legend>second digital input</legend>
+	<label for="di_1_pin_name">digital input 1 name</label>
+    <input id="di_1_pin_name" value="%%%di_1_pin_name%%%">
+	<br />
+	<label for="di_1_pin_number">digital input 1 number</label>
+    <input id="di_1_pin_number" value="%%%di_1_pin_number%%%">
+	<br />
+	  <input type="radio" id="di_1_on_value_HIGH" name="di_1_on_value" value="HIGH" %%%di_1_on_value_HIGH%%%>
+	  <label for="di_1_on_value_HIGH"> digital_1 on=HIGH</label>
+	  <input type="radio" id="di_1_on_value_LOW" name="di_1_on_value" value="LOW" %%%di_1_on_value_LOW%%%>
+	  <label for="di_1_on_value_LOW"> digital_1 on=LOW</label>
+	<br />
+	  <input type="radio" id="di_1_off_value_HIGH" name="di_1_off_value" value="HIGH" %%%di_1_off_value_HIGH%%%>
+	  <label for="di_1_off_value_HIGH"> digital_1 off=HIGH</label>
+	  <input type="radio" id="di_1_off_value_LOW" name="di_1_off_value" value="LOW" %%%di_1_off_value_LOW%%%>
+	  <label for="di_1_off_value_LOW"> digital_1 off=LOW</label>
+	  <br />
+	  <input type="radio" id="di_1_pinmode_INPUT" name="di_1_pinmode" value="INPUT" %%%di_1_pinmode_INPUT%%%>
+	  <label for="di_1_pinmode_INPUT"> digital_1 off=HIGH</label>
+	  <input type="radio" id="di_1_pinmode_INPUT_PULLUP" name="di_1_pinmode" value="INPUT_PULLUP" %%%di_1_pinmode_INPUT_PULLUP%%%>
+	  <label for="di_1_pinmode_INPUT_PULLUP"> digital_1 off=LOW</label>
+	</fieldset>
+	<br />
+	<fieldset>
+	  <legend>CP analog input count on A0</legend>
+	  <input type="radio" id="input_count_cp_0" name="input_count_cp" value="0" %%%input_count_cp_0%%%>
+	  <label for="input_count_cp_0"> no analog CP input</label>
+	  <input type="radio" id="input_count_cp_1" name="input_count_cp" value="1" %%%input_count_cp_1%%%>
+	  <label for="input_count_cp_1"> 1 analog CP input</label>
+	</fieldset>
+	<br />
+	<fieldset>
+	  <legend>HC-SR04 ultrasound input count</legend>
+	  <input type="radio" id="input_count_us_0" name="input_count_us" value="0" %%%input_count_us_0%%%>
+	  <label for="input_count_us_0"> no ultrasound input</label>
+	  <input type="radio" id="input_count_us_1" name="input_count_us" value="1" %%%input_count_us_1%%%>
+	  <label for="input_count_us_1"> 1 ultrasound input</label>
+	  <input type="radio" id="input_count_us_2" name="input_count_us" value="2" %%%input_count_us_2%%%>
+	  <label for="input_count_us_2"> 2 ultrasound inputs</label>
+	</fieldset>
+
+	<fieldset>
+	  <legend>first HC-SR04 ultrasound input</legend>
+	<label for="us_0_pin_name">name</label>
+    <input id="us_0_pin_name" value="%%%us_0_pin_name%%%">
+	<br />
+	<label for="us_0_trigger_pin">trigger pin</label>
+    <input id="us_0_trigger_pin" value="%%%us_0_trigger_pin%%%">
+	<br />
+	<input type="radio" id="us_0_trigger_on_HIGH" name="us_0_trigger_on" value="HIGH" %%%us_0_trigger_on_HIGH%%%>
+	  <label for="us_0_trigger_on_HIGH">  trigger_on=HIGH</label>
+	  <input type="radio" id="us_0_trigger_on_LOW" name="us_0_trigger_on" value="LOW" %%%us_0_trigger_on_LOW%%%>
+	  <label for="us_0_trigger_on_LOW">  trigger_on=LOW</label>
+	<br />
+	<input type="radio" id="us_0_trigger_off_HIGH" name="us_0_trigger_off" value="HIGH" %%%us_0_trigger_off_HIGH%%%>
+	  <label for="us_0_trigger_off_HIGH">  trigger_off=HIGH</label>
+	  <input type="radio" id="us_0_trigger_off_LOW" name="us_0_trigger_off" value="LOW" %%%us_0_trigger_off_LOW%%%>
+	  <label for="us_0_trigger_off_LOW">  trigger_off=LOW</label>
+	<br />
+	<label for="us_0_echo_pin">echo pin</label>
+    <input id="us_0_echo_pin" value="%%%us_0_echo_pin%%%">
+	<br />
+	<input type="radio" id="us_0_echo_on_HIGH" name="us_0_echo_on" value="HIGH" %%%us_0_echo_on_HIGH%%%>
+	  <label for="us_0_echo_on_HIGH">  echo_on=HIGH</label>
+	  <input type="radio" id="us_0_echo_on_LOW" name="us_0_echo_on" value="LOW" %%%us_0_echo_on_LOW%%%>
+	  <label for="us_0_echo_on_LOW">  echo_on=LOW</label>
+	  	<br />
+	<label for="us_0_timeout_us">timeout in microseconds (multiply max cm by 58, add 10%)</label>
+    <input id="us_0_timeout_us" value="%%%us_0_timeout_us%%%">
+	<br />
+	<label for="us_0_free_distance">how many cm = free</label>
+    <input id="us_0_free_distance" value="%%%us_0_free_distance%%%">
+	</fieldset>
+		<fieldset>
+	  <legend>second HC-SR04 ultrasound input</legend>
+	<label for="us_1_pin_name">name</label>
+    <input id="us_1_pin_name" value="%%%us_1_pin_name%%%">
+	<br />
+	<label for="us_1_trigger_pin">trigger pin</label>
+    <input id="us_1_trigger_pin" value="%%%us_1_trigger_pin%%%">
+	<br />
+	<input type="radio" id="us_1_trigger_on_HIGH" name="us_1_trigger_on" value="HIGH" %%%us_1_trigger_on_HIGH%%%>
+	  <label for="us_1_trigger_on_HIGH">  trigger_on=HIGH</label>
+	  <input type="radio" id="us_1_trigger_on_LOW" name="us_1_trigger_on" value="LOW" %%%us_1_trigger_on_LOW%%%>
+	  <label for="us_1_trigger_on_LOW">  trigger_on=LOW</label>
+	<br />
+	<input type="radio" id="us_1_trigger_off_HIGH" name="us_1_trigger_off" value="HIGH" %%%us_1_trigger_off_HIGH%%%>
+	  <label for="us_1_trigger_off_HIGH">  trigger_off=HIGH</label>
+	  <input type="radio" id="us_1_trigger_off_LOW" name="us_1_trigger_off" value="LOW" %%%us_1_trigger_off_LOW%%%>
+	  <label for="us_1_trigger_off_LOW">  trigger_off=LOW</label>
+	<br />
+	<label for="us_1_echo_pin">echo pin</label>
+    <input id="us_1_echo_pin" value="%%%us_1_echo_pin%%%">
+	<br />
+	<input type="radio" id="us_1_echo_on_HIGH" name="us_1_echo_on" value="HIGH" %%%us_1_echo_on_HIGH%%%>
+	  <label for="us_1_echo_on_HIGH">  echo_on=HIGH</label>
+	  <input type="radio" id="us_1_echo_on_LOW" name="us_1_echo_on" value="LOW" %%%us_1_echo_on_LOW%%%>
+	  <label for="us_1_echo_on_LOW">  echo_on=LOW</label>
+	  	<br />
+	<label for="us_1_timeout_us">timeout in microseconds (multiply max cm by 58, add 10%)</label>
+    <input id="us_1_timeout_us" value="%%%us_1_timeout_us%%%">
+	<br />
+	<label for="us_1_free_distance">how many cm = free</label>
+    <input id="us_1_free_distance" value="%%%us_1_free_distance%%%">
+	</fieldset>
+	<br />
+	<fieldset>
+	  <legend>SmartEVSE serial input count</legend>
+	  <input type="radio" id="input_count_ev_0" name="input_count_ev" value="0" %%%input_count_ev_0%%%>
+	  <label for="input_count_ev_0"> no SmartEVSE serial input</label>
+	  <input type="radio" id="input_count_ev_1" name="input_count_ev" value="1" %%%input_count_ev_1%%%>
+	  <label for="input_count_ev_1"> 1 SmartEVSE serial input</label>
+	  <input type="radio" id="input_count_ev_2" name="input_count_ev" value="2" %%%input_count_ev_2%%%>
+	  <label for="input_count_ev_2"> 2 SmartEVSE serial inputs</label>
+	</fieldset>
+  <fieldset>
+	  <legend>first SmartEVSE serial input</legend>
+	  	<label for="ev_0_pin_name">name</label>
+    <input id="ev_0_pin_name" value="%%%ev_0_pin_name%%%">
+	<br />
+	<label for="ev_0_pin_number">pin number</label>
+    <input id="ev_0_pin_number" value="%%%ev_0_pin_number%%%">
+	<br />
+	<label for="ev_0_baudrate">baud rate</label>
+    <input id="ev_0_baudrate" value="%%%ev_0_baudrate%%%">
+	<br />
+	  </fieldset>
+	    <fieldset>
+	  <legend>second SmartEVSE serial input</legend>
+	  	<label for="ev_1_pin_name">name</label>
+    <input id="ev_1_pin_name" value="%%%ev_1_pin_name%%%">
+	<br />
+	<label for="ev_1_pin_number">pin number</label>
+    <input id="ev_1_pin_number" value="%%%ev_1_pin_number%%%">
+	<br />
+	<label for="ev_1_baudrate">baud rate</label>
+    <input id="ev_1_baudrate" value="%%%ev_1_baudrate%%%">
+	<br />
+	  </fieldset>
+	<button type="submit">Save settings and reboot CfOnlinestatus</button>
+   </form>
+  </body>
+</html>
