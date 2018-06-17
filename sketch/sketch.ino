@@ -57,7 +57,9 @@ uint32_t impulses_in_previous_timeframe[2];
 
 uint8_t di_value[2];
 
-uint8_t analogvals[100];
+const uint8_t analogval_count = 20;
+
+uint8_t analogvals[analogval_count];
 uint8_t analogpos=0;
 uint16_t analogsum = 0;
 uint32_t last_nonzero_analog = 0;
@@ -177,12 +179,12 @@ void read_cp_input() {
     analogsum -= analogvals[analogpos];
     analogvals[analogpos++] = val;
     analogsum += val;
-    if(analogpos >= 100) {
+    if(analogpos >= analogval_count) {
       analogpos = 0;
     }
   } else if((uint32_t)(millis()-last_nonzero_analog) > 1000) {
     analogsum = 0;
-    for(uint8_t i = 0; i < 100; i++) {
+    for(uint8_t i = 0; i < analogval_count; i++) {
       analogvals[i]=0;
     }
   }
@@ -483,7 +485,7 @@ void send_lora_digital_input_status() {
 */
 
 inline void update_cp() {
-  cp_value = analogsum / 100;
+  cp_value = analogsum / analogval_count;
 }
 
 void print_cp_status() {
