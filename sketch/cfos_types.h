@@ -54,7 +54,7 @@ struct lora_payload {
 
 struct cfos_config {
   uint16_t  magic_marker; // must be 0x51EF
-  uint16_t  config_length; // must be sizeof(cfos_config_v1)
+  uint16_t  config_length; // must be sizeof(cfos_config)
   uint32_t  checksum; // must be 0 during CRC32 check and contain the crc32 value afterwards
   uint8_t   input_count_s0;
   uint8_t   input_count_di;
@@ -103,8 +103,8 @@ const cfos_config default_config = {
   .chargepoint_id = { '1', '0', '0', '0', '0', '0', 0},
   .sensor_update_interval_s = 15,
   .net_wifi = 0,
-  .wifi_ssid = {0}, //{ 'W', 'i', 'F', 'i', 'S', 'S', 'I', 'D', 0},
-  .wifi_key = {0}, //{ 'W', 'i', 'F', 'i', 'P', 'r', 'e', 's', 'h', 'a', 'r', 'e', 'd', 'K', 'e', 'y', 0},
+  .wifi_ssid = {0},
+  .wifi_key = {0},
   .mqtt_update_interval_s = 60,   
   .mqtt_server = { '4', '6', '.', '3', '8', '.', '2', '3', '2', '.', '9', '7', 0},
   .mqtt_port = 1883,

@@ -9,35 +9,35 @@ CfOnlinestatus configuration dialog
   </head>
   <body>
    <h1>CfOnlinestatus configuration dialog</h1>
-   <form action="" method="POST">
+   <form action="/write" method="POST">
     <input type="hidden" id="really" value="yes" />
     <button type="reset">Reset HTML form to start value</button>
 	<br />
 	<fieldset>
 	  <legend>General settings</legend>
     <label for="chargepoint_id">CFOS chargepoint_id</label>
-    <input id="chargepoint_id" value="%%%chargepoint_id%%%">
+    <input type="text" id="chargepoint_id" name="chargepoint_id" value="%%%chargepoint_id%%%">
 	<br />
 	<label for="sensor_update_interval_s">Sensor update interval (seconds)</label>
-    <input id="sensor_update_interval_s" value="%%%sensor_update_interval_s%%%">
+    <input type="text" id="sensor_update_interval_s" name="sensor_update_interval_s" value="%%%sensor_update_interval_s%%%">
 	<br />
 	<label for="serial_baudrate">Serial baudrate</label>
-    <input id="serial_baudrate" value="%%%serial_baudrate%%%">
+    <input type="text" id="serial_baudrate" name="serial_baudrate" value="%%%serial_baudrate%%%">
 	<br />
 	<label for="serial_output_interval_s">Serial output interval (seconds)</label>
-    <input id="serial_output_interval_s" value="%%%serial_output_interval_s%%%">
+    <input type="text" id="serial_output_interval_s" name="serial_output_interval_s" value="%%%serial_output_interval_s%%%">
 	<br />
 	<label for="factory_default">Type FACTORYDEFAULT in this field and click on update to reset the complete configuration</label>
-    <input id="factory_default" value="">
+    <input type="text" id="factory_default" name="factory_default" value="">
 	<br />
 	</fieldset>
 	<fieldset>
 	  <legend>WiFi Settings</legend>
 	<label for="wifi_ssid">WiFi SSID</label>
-    <input id="wifi_ssid" value="%%%wifi_ssid%%%">
+    <input type="text" id="wifi_ssid" name="wifi_ssid" value="%%%wifi_ssid%%%">
 	<br />
 	<label for="wifi_key">WiFi Password</label>
-    <input id="wifi_key" value="%%%wifi_key%%%">
+    <input type="text" id="wifi_key" name="wifi_key" value="%%%wifi_key%%%">
 	<br />
 	</fieldset>
 
@@ -45,19 +45,19 @@ CfOnlinestatus configuration dialog
 <fieldset>
 	  <legend>MQTT settings</legend>
 	<label for="mqtt_server">MQTT Servername or IP</label>
-    <input id="mqtt_server" value="%%%mqtt_server%%%">
+    <input type="text" id="mqtt_server" name="mqtt_server" value="%%%mqtt_server%%%">
 	<br />
 	<label for="mqtt_port">MQTT port number</label>
-    <input id="mqtt_port" value="%%%mqtt_port%%%">
+    <input type="text" id="mqtt_port" name="mqtt_port" value="%%%mqtt_port%%%">
 	<br />
 	<label for="mqtt_username">MQTT username</label>
-    <input id="mqtt_username" value="%%%mqtt_username%%%">
+    <input type="text" id="mqtt_username" name="mqtt_username" value="%%%mqtt_username%%%">
 	<br />
 	<label for="mqtt_password">MQTT password (or empty)</label>
-    <input id="mqtt_password" value="%%%mqtt_password%%%">
+    <input type="text" id="mqtt_password" name="mqtt_password" value="%%%mqtt_password%%%">
 	<br />
 	<label for="mqtt_update_interval_s">MQTT output interval (seconds)</label>
-    <input id="mqtt_update_interval_s" value="%%%mqtt_update_interval_s%%%">
+    <input type="text" id="mqtt_update_interval_s" name="mqtt_update_interval_s" value="%%%mqtt_update_interval_s%%%">
 	<br />
 </fieldset>
 	
@@ -74,10 +74,10 @@ CfOnlinestatus configuration dialog
 	<fieldset>
 	  <legend>first S0 input</legend>
 	<label for="s0_0_pin_name">S0 input 0 name</label>
-    <input id="s0_0_pin_name" value="%%%s0_0_pin_name%%%">
+    <input type="text" id="s0_0_pin_name" name="s0_0_pin_name" value="%%%s0_0_pin_name%%%">
 	<br />
 	<label for="s0_0_pin_number">S0 input 0 number</label>
-    <input id="s0_0_pin_number" value="%%%s0_0_pin_number%%%">
+    <input type="text" id="s0_0_pin_number" name="s0_0_pin_number" value="%%%s0_0_pin_number%%%">
 	<br />
 	  <input type="radio" id="s0_0_on_value_HIGH" name="s0_0_on_value" value="HIGH" %%%s0_0_on_value_HIGH%%%>
 	  <label for="s0_0_on_value_HIGH"> S0_0 on=HIGH</label>
@@ -90,20 +90,20 @@ CfOnlinestatus configuration dialog
 	  <label for="s0_0_off_value_LOW"> S0_0 off=LOW</label>
 	  <br />
 	  <input type="radio" id="s0_0_pinmode_INPUT" name="s0_0_pinmode" value="INPUT" %%%s0_0_pinmode_INPUT%%%>
-	  <label for="s0_0_pinmode_INPUT"> S0_0 off=HIGH</label>
+	  <label for="s0_0_pinmode_INPUT"> S0_0 pinmode=INPUT</label>
 	  <input type="radio" id="s0_0_pinmode_INPUT_PULLUP" name="s0_0_pinmode" value="INPUT_PULLUP" %%%s0_0_pinmode_INPUT_PULLUP%%%>
-	  <label for="s0_0_pinmode_INPUT_PULLUP"> S0_0 off=LOW</label>
+	  <label for="s0_0_pinmode_INPUT_PULLUP"> S0_0 pinmode=INPUT_PULLUP</label>
 	  <br />
 	<label for="s0_0_impulses_per_kWh">S0 input 0 impulses per kWh</label>
-    <input id="s0_0_impulses_per_kWh" value="%%%s0_0_impulses_per_kWh%%%">
+    <input type="text" id="s0_0_impulses_per_kWh" name="s0_0_impulses_per_kWh" value="%%%s0_0_impulses_per_kWh%%%">
 	</fieldset>
 		<fieldset>
 	  <legend>second S0 input</legend>
 	<label for="s0_1_pin_name">S0 input 1 name</label>
-    <input id="s0_1_pin_name" value="%%%s0_1_pin_name%%%">
+    <input type="text" id="s0_1_pin_name" name="s0_1_pin_name" value="%%%s0_1_pin_name%%%">
 	<br />
 	<label for="s0_1_pin_number">S0 input 1 number</label>
-    <input id="s0_1_pin_number" value="%%%s0_1_pin_number%%%">
+    <input type="text" id="s0_1_pin_number" name="s0_1_pin_number" value="%%%s0_1_pin_number%%%">
 	<br />
 	  <input type="radio" id="s0_1_on_value_HIGH" name="s0_1_on_value" value="HIGH" %%%s0_1_on_value_HIGH%%%>
 	  <label for="s0_1_on_value_HIGH"> S0_1 on=HIGH</label>
@@ -116,12 +116,12 @@ CfOnlinestatus configuration dialog
 	  <label for="s0_1_off_value_LOW"> S0_1 off=LOW</label>
 	  <br />
 	  <input type="radio" id="s0_1_pinmode_INPUT" name="s0_1_pinmode" value="INPUT" %%%s0_1_pinmode_INPUT%%%>
-	  <label for="s0_1_pinmode_INPUT"> S0_1 off=HIGH</label>
+	  <label for="s0_1_pinmode_INPUT"> S0_1 pinmode=INPUT</label>
 	  <input type="radio" id="s0_1_pinmode_INPUT_PULLUP" name="s0_1_pinmode" value="INPUT_PULLUP" %%%s0_1_pinmode_INPUT_PULLUP%%%>
-	  <label for="s0_1_pinmode_INPUT_PULLUP"> S0_1 off=LOW</label>
+	  <label for="s0_1_pinmode_INPUT_PULLUP"> S0_1 pinmode=INPUT_PULLUP</label>
 	  <br />
 	<label for="s0_1_impulses_per_kWh">S0 input 1 impulses per kWh</label>
-    <input id="s0_1_impulses_per_kWh" value="%%%s0_1_impulses_per_kWh%%%">
+    <input type="text" id="s0_1_impulses_per_kWh" name="s0_1_impulses_per_kWh" value="%%%s0_1_impulses_per_kWh%%%">
 	</fieldset>
 	
 	
@@ -138,10 +138,10 @@ CfOnlinestatus configuration dialog
 		<fieldset>
 	  <legend>first digital input</legend>
 	<label for="di_0_pin_name">digital input 0 name</label>
-    <input id="di_0_pin_name" value="%%%di_0_pin_name%%%">
+    <input type="text" id="di_0_pin_name" name="di_0_pin_name" value="%%%di_0_pin_name%%%">
 	<br />
 	<label for="di_0_pin_number">digital input 0 number</label>
-    <input id="di_0_pin_number" value="%%%di_0_pin_number%%%">
+    <input type="text" id="di_0_pin_number" name="di_0_pin_number" value="%%%di_0_pin_number%%%">
 	<br />
 	  <input type="radio" id="di_0_on_value_HIGH" name="di_0_on_value" value="HIGH" %%%di_0_on_value_HIGH%%%>
 	  <label for="di_0_on_value_HIGH"> digital_0 on=HIGH</label>
@@ -154,17 +154,17 @@ CfOnlinestatus configuration dialog
 	  <label for="di_0_off_value_LOW"> digital_0 off=LOW</label>
 	  <br />
 	  <input type="radio" id="di_0_pinmode_INPUT" name="di_0_pinmode" value="INPUT" %%%di_0_pinmode_INPUT%%%>
-	  <label for="di_0_pinmode_INPUT"> digital_0 off=HIGH</label>
+	  <label for="di_0_pinmode_INPUT"> digital_0 pinmode=INPUT</label>
 	  <input type="radio" id="di_0_pinmode_INPUT_PULLUP" name="di_0_pinmode" value="INPUT_PULLUP" %%%di_0_pinmode_INPUT_PULLUP%%%>
-	  <label for="di_0_pinmode_INPUT_PULLUP"> digital_0 off=LOW</label>
+	  <label for="di_0_pinmode_INPUT_PULLUP"> digital_0 pinmode=INPUT_PULLUP</label>
 	</fieldset>
 	<fieldset>
 	  <legend>second digital input</legend>
 	<label for="di_1_pin_name">digital input 1 name</label>
-    <input id="di_1_pin_name" value="%%%di_1_pin_name%%%">
+    <input type="text" id="di_1_pin_name" name="di_1_pin_name" value="%%%di_1_pin_name%%%">
 	<br />
 	<label for="di_1_pin_number">digital input 1 number</label>
-    <input id="di_1_pin_number" value="%%%di_1_pin_number%%%">
+    <input type="text" id="di_1_pin_number" name="di_1_pin_number" value="%%%di_1_pin_number%%%">
 	<br />
 	  <input type="radio" id="di_1_on_value_HIGH" name="di_1_on_value" value="HIGH" %%%di_1_on_value_HIGH%%%>
 	  <label for="di_1_on_value_HIGH"> digital_1 on=HIGH</label>
@@ -177,9 +177,9 @@ CfOnlinestatus configuration dialog
 	  <label for="di_1_off_value_LOW"> digital_1 off=LOW</label>
 	  <br />
 	  <input type="radio" id="di_1_pinmode_INPUT" name="di_1_pinmode" value="INPUT" %%%di_1_pinmode_INPUT%%%>
-	  <label for="di_1_pinmode_INPUT"> digital_1 off=HIGH</label>
+	  <label for="di_1_pinmode_INPUT"> digital_1 pinmode=INPUT</label>
 	  <input type="radio" id="di_1_pinmode_INPUT_PULLUP" name="di_1_pinmode" value="INPUT_PULLUP" %%%di_1_pinmode_INPUT_PULLUP%%%>
-	  <label for="di_1_pinmode_INPUT_PULLUP"> digital_1 off=LOW</label>
+	  <label for="di_1_pinmode_INPUT_PULLUP"> digital_1 pinmode=INPUT_PULLUP</label>
 	</fieldset>
 	<br />
 	<fieldset>
@@ -203,10 +203,10 @@ CfOnlinestatus configuration dialog
 	<fieldset>
 	  <legend>first HC-SR04 ultrasound input</legend>
 	<label for="us_0_pin_name">name</label>
-    <input id="us_0_pin_name" value="%%%us_0_pin_name%%%">
+    <input type="text" id="us_0_pin_name" name="us_0_pin_name" value="%%%us_0_pin_name%%%">
 	<br />
 	<label for="us_0_trigger_pin">trigger pin</label>
-    <input id="us_0_trigger_pin" value="%%%us_0_trigger_pin%%%">
+    <input type="text" id="us_0_trigger_pin" name="us_0_trigger_pin" value="%%%us_0_trigger_pin%%%">
 	<br />
 	<input type="radio" id="us_0_trigger_on_HIGH" name="us_0_trigger_on" value="HIGH" %%%us_0_trigger_on_HIGH%%%>
 	  <label for="us_0_trigger_on_HIGH">  trigger_on=HIGH</label>
@@ -219,7 +219,7 @@ CfOnlinestatus configuration dialog
 	  <label for="us_0_trigger_off_LOW">  trigger_off=LOW</label>
 	<br />
 	<label for="us_0_echo_pin">echo pin</label>
-    <input id="us_0_echo_pin" value="%%%us_0_echo_pin%%%">
+    <input type="text" id="us_0_echo_pin" name="us_0_echo_pin" value="%%%us_0_echo_pin%%%">
 	<br />
 	<input type="radio" id="us_0_echo_on_HIGH" name="us_0_echo_on" value="HIGH" %%%us_0_echo_on_HIGH%%%>
 	  <label for="us_0_echo_on_HIGH">  echo_on=HIGH</label>
@@ -227,18 +227,18 @@ CfOnlinestatus configuration dialog
 	  <label for="us_0_echo_on_LOW">  echo_on=LOW</label>
 	  	<br />
 	<label for="us_0_timeout_us">timeout in microseconds (multiply max cm by 58, add 10%)</label>
-    <input id="us_0_timeout_us" value="%%%us_0_timeout_us%%%">
+    <input type="text" id="us_0_timeout_us" name="us_0_timeout_us" value="%%%us_0_timeout_us%%%">
 	<br />
 	<label for="us_0_free_distance">how many cm = free</label>
-    <input id="us_0_free_distance" value="%%%us_0_free_distance%%%">
+    <input type="text" id="us_0_free_distance" name="us_0_free_distance" value="%%%us_0_free_distance%%%">
 	</fieldset>
 		<fieldset>
 	  <legend>second HC-SR04 ultrasound input</legend>
 	<label for="us_1_pin_name">name</label>
-    <input id="us_1_pin_name" value="%%%us_1_pin_name%%%">
+    <input type="text" id="us_1_pin_name" name="us_1_pin_name" value="%%%us_1_pin_name%%%">
 	<br />
 	<label for="us_1_trigger_pin">trigger pin</label>
-    <input id="us_1_trigger_pin" value="%%%us_1_trigger_pin%%%">
+    <input type="text" id="us_1_trigger_pin" name="us_1_trigger_pin" value="%%%us_1_trigger_pin%%%">
 	<br />
 	<input type="radio" id="us_1_trigger_on_HIGH" name="us_1_trigger_on" value="HIGH" %%%us_1_trigger_on_HIGH%%%>
 	  <label for="us_1_trigger_on_HIGH">  trigger_on=HIGH</label>
@@ -251,7 +251,7 @@ CfOnlinestatus configuration dialog
 	  <label for="us_1_trigger_off_LOW">  trigger_off=LOW</label>
 	<br />
 	<label for="us_1_echo_pin">echo pin</label>
-    <input id="us_1_echo_pin" value="%%%us_1_echo_pin%%%">
+    <input type="text" id="us_1_echo_pin" name="us_1_echo_pin" value="%%%us_1_echo_pin%%%">
 	<br />
 	<input type="radio" id="us_1_echo_on_HIGH" name="us_1_echo_on" value="HIGH" %%%us_1_echo_on_HIGH%%%>
 	  <label for="us_1_echo_on_HIGH">  echo_on=HIGH</label>
@@ -259,10 +259,10 @@ CfOnlinestatus configuration dialog
 	  <label for="us_1_echo_on_LOW">  echo_on=LOW</label>
 	  	<br />
 	<label for="us_1_timeout_us">timeout in microseconds (multiply max cm by 58, add 10%)</label>
-    <input id="us_1_timeout_us" value="%%%us_1_timeout_us%%%">
+    <input type="text" id="us_1_timeout_us" name="us_1_timeout_us" value="%%%us_1_timeout_us%%%">
 	<br />
 	<label for="us_1_free_distance">how many cm = free</label>
-    <input id="us_1_free_distance" value="%%%us_1_free_distance%%%">
+    <input type="text" id="us_1_free_distance" name="us_1_free_distance" value="%%%us_1_free_distance%%%">
 	</fieldset>
 	<br />
 	<fieldset>
@@ -277,25 +277,25 @@ CfOnlinestatus configuration dialog
   <fieldset>
 	  <legend>first SmartEVSE serial input</legend>
 	  	<label for="ev_0_pin_name">name</label>
-    <input id="ev_0_pin_name" value="%%%ev_0_pin_name%%%">
+    <input type="text" id="ev_0_pin_name" name="ev_0_pin_name" value="%%%ev_0_pin_name%%%">
 	<br />
 	<label for="ev_0_pin_number">pin number</label>
-    <input id="ev_0_pin_number" value="%%%ev_0_pin_number%%%">
+    <input type="text" id="ev_0_pin_number" name="ev_0_pin_number" value="%%%ev_0_pin_number%%%">
 	<br />
 	<label for="ev_0_baudrate">baud rate</label>
-    <input id="ev_0_baudrate" value="%%%ev_0_baudrate%%%">
+    <input type="text" id="ev_0_baudrate" name="ev_0_baudrate" value="%%%ev_0_baudrate%%%">
 	<br />
 	  </fieldset>
 	    <fieldset>
 	  <legend>second SmartEVSE serial input</legend>
 	  	<label for="ev_1_pin_name">name</label>
-    <input id="ev_1_pin_name" value="%%%ev_1_pin_name%%%">
+    <input type="text" id="ev_1_pin_name" name="ev_1_pin_name" value="%%%ev_1_pin_name%%%">
 	<br />
 	<label for="ev_1_pin_number">pin number</label>
-    <input id="ev_1_pin_number" value="%%%ev_1_pin_number%%%">
+    <input type="text" id="ev_1_pin_number" name="ev_1_pin_number" value="%%%ev_1_pin_number%%%">
 	<br />
 	<label for="ev_1_baudrate">baud rate</label>
-    <input id="ev_1_baudrate" value="%%%ev_1_baudrate%%%">
+    <input type="text" id="ev_1_baudrate" name="ev_1_baudrate" value="%%%ev_1_baudrate%%%">
 	<br />
 	  </fieldset>
 	<button type="submit">Save settings and reboot CfOnlinestatus</button>

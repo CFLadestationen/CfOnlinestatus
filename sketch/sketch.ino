@@ -261,45 +261,6 @@ inline void init_inputs() {
   }
 }
 
-String p2n(uint8_t pin) {
-  switch(pin) {
-    case D0:
-      return "D0";
-      break;
-    case D1:
-      return "D1";
-      break;
-    case D2:
-      return "D2";
-      break;
-    case D3:
-      return "D3";
-      break;
-    case D4:
-      return "D4";
-      break;
-    case D5:
-      return "D5";
-      break;
-    case D6:
-      return "D6";
-      break;
-    case D7:
-      return "D7";
-      break;
-    case D8:
-      return "D8";
-      break;
-    case A0:
-      return "A0";
-      break;
-  }
-  return "INVALID";
-}
-uint8_t n2p(String name) {
-  return 0;
-}
-
 inline void init_network() {
   if(configured && strlen(cfg.wifi_ssid) > 0) {
     WiFi.mode(WIFI_STA);
@@ -324,17 +285,11 @@ inline void init_network() {
     WiFi.softAP("CFOSConfig");
   }
   webserver.on("/", ConfigPage);
+  webserver.on("/write", WriteSettings);
   webserver.begin();
   MDNS.begin("cfos");
   MDNS.addService("http", "tcp", 80);
 }
-
-void ConfigPage() {
-  String page;
-  page += "";
-  webserver.send(200, "text/plain", "Hallo");
-}
-
 
 inline void init_mqtt() {
   mqtt_client.setClient(wifi_client);
@@ -758,5 +713,553 @@ inline void read_evse_buffers() {
       }
     }
   }
+}
+
+void WriteSettings() {
+  if(!webserver.hasArg("really") || webserver.arg("really") != "yes") {
+    webserver.send(200, "text/plain", "error writing settings");
+    return;
+  }
+  if(webserver.hasArg("factory_default") && webserver.arg("factory_default") == "FACTORYDEFAULT") {
+    EEPROM.begin(1024);
+    for(int i = 0; i < 1024; i++) {
+      EEPROM.write(i, 0);
+    }
+    delay(200);
+    EEPROM.commit();
+    EEPROM.end();
+    webserver.send(200, "text/plain", "writing factory defaults - CfOnlinestatus is rebooting");
+    for(int i = 0; i < 100; i++) {
+      webserver.handleClient();
+      delay(10);
+    }
+    ESP.restart();
+    return;
+  }
+
+  strncpy(cfg.chargepoint_id, webserver.arg("chargepoint_id").c_str(), sizeof(cfg.chargepoint_id));
+  cfg.sensor_update_interval_s = webserver.arg("sensor_update_interval_s").toInt();
+  cfg.serial_baudrate = webserver.arg("serial_baudrate").toInt();
+  cfg.serial_output_interval_s = webserver.arg("serial_output_interval_s").toInt();
+  strncpy(cfg.wifi_ssid, webserver.arg("wifi_ssid").c_str(), sizeof(cfg.wifi_ssid));
+  strncpy(cfg.wifi_key, webserver.arg("wifi_key").c_str(), sizeof(cfg.wifi_key));
+  strncpy(cfg.mqtt_server, webserver.arg("mqtt_server").c_str(), sizeof(cfg.mqtt_server));
+  cfg.mqtt_port = webserver.arg("mqtt_port").toInt();
+  strncpy(cfg.mqtt_username, webserver.arg("mqtt_username").c_str(), sizeof(cfg.mqtt_username));
+  strncpy(cfg.mqtt_password, webserver.arg("mqtt_password").c_str(), sizeof(cfg.mqtt_password));
+  cfg.mqtt_update_interval_s = webserver.arg("mqtt_update_interval_s").toInt();
+  cfg.input_count_s0 = webserver.arg("input_count_s0").toInt();
+  strncpy(cfg.s0[0].pin_name, webserver.arg("s0_0_pin_name").c_str(), sizeof(cfg.s0[0].pin_name));
+  cfg.s0[0].pin_number = name2pin(webserver.arg("s0_0_pin_number"));
+  cfg.s0[0].on_value = name2hilo(webserver.arg("s0_0_on_value"));
+  cfg.s0[0].off_value = name2hilo(webserver.arg("s0_0_off_value"));
+  cfg.s0[0].pin_mode = name2input(webserver.arg("s0_0_pinmode"));
+  cfg.s0_impulses_per_kWh[0] = webserver.arg("s0_0_impulses_per_kWh").toInt();
+  strncpy(cfg.s0[1].pin_name, webserver.arg("s0_1_pin_name").c_str(), sizeof(cfg.s0[1].pin_name));
+  cfg.s0[1].pin_number = name2pin(webserver.arg("s0_1_pin_number"));
+  cfg.s0[1].on_value = name2hilo(webserver.arg("s0_1_on_value"));
+  cfg.s0[1].off_value = name2hilo(webserver.arg("s0_1_off_value"));
+  cfg.s0[1].pin_mode = name2input(webserver.arg("s0_1_pinmode"));
+  cfg.s0_impulses_per_kWh[1] = webserver.arg("s0_1_impulses_per_kWh").toInt();
+  cfg.input_count_di = webserver.arg("input_count_di").toInt();
+  strncpy(cfg.di[0].pin_name, webserver.arg("di_0_pin_name").c_str(), sizeof(cfg.di[0].pin_name));
+  cfg.di[0].pin_number = name2pin(webserver.arg("di_0_pin_number"));
+  cfg.di[0].on_value = name2hilo(webserver.arg("di_0_on_value"));
+  cfg.di[0].off_value = name2hilo(webserver.arg("di_0_off_value"));
+  cfg.di[0].pin_mode = name2input(webserver.arg("di_0_pinmode"));
+  strncpy(cfg.di[1].pin_name, webserver.arg("di_1_pin_name").c_str(), sizeof(cfg.di[1].pin_name));
+  cfg.di[1].pin_number = name2pin(webserver.arg("di_1_pin_number"));
+  cfg.di[1].on_value = name2hilo(webserver.arg("di_1_on_value"));
+  cfg.di[1].off_value = name2hilo(webserver.arg("di_1_off_value"));
+  cfg.di[1].pin_mode = name2input(webserver.arg("di_1_pinmode"));
+  cfg.input_count_cp = webserver.arg("input_count_cp").toInt();
+  cfg.input_count_us = webserver.arg("input_count_us").toInt();
+  strncpy(cfg.us[0].sensor_name, webserver.arg("us_0_pin_name").c_str(), sizeof(cfg.us[0].sensor_name));
+  cfg.us[0].trigger_pin = name2pin(webserver.arg("us_0_trigger_pin"));
+  cfg.us[0].echo_pin = name2pin(webserver.arg("us_0_echo_pin"));
+  cfg.us[0].trigger_on = name2hilo(webserver.arg("us_0_trigger_on"));
+  cfg.us[0].trigger_off = name2hilo(webserver.arg("us_0_trigger_off"));
+  cfg.us[0].echo_on = name2hilo(webserver.arg("us_0_echo_on"));
+  cfg.us[0].timeout_us = webserver.arg("us_0_timeout_us").toInt();
+  cfg.us[0].free_distance = webserver.arg("us_0_free_distance").toInt();
+  strncpy(cfg.us[1].sensor_name, webserver.arg("us_1_pin_name").c_str(), sizeof(cfg.us[1].sensor_name));
+  cfg.us[1].trigger_pin = name2pin(webserver.arg("us_1_trigger_pin"));
+  cfg.us[1].echo_pin = name2pin(webserver.arg("us_1_echo_pin"));
+  cfg.us[1].trigger_on = name2hilo(webserver.arg("us_1_trigger_on"));
+  cfg.us[1].trigger_off = name2hilo(webserver.arg("us_1_trigger_off"));
+  cfg.us[1].echo_on = name2hilo(webserver.arg("us_1_echo_on"));
+  cfg.us[1].timeout_us = webserver.arg("us_1_timeout_us").toInt();
+  cfg.us[1].free_distance = webserver.arg("us_1_free_distance").toInt();
+  cfg.input_count_ev = webserver.arg("input_count_ev").toInt();
+  strncpy(cfg.ev[0].pin_name, webserver.arg("ev_0_pin_name").c_str(), sizeof(cfg.ev[0].pin_name));
+  cfg.ev[0].pin_number = name2pin(webserver.arg("ev_0_pin_number"));
+  cfg.ev[0].baudrate = name2pin(webserver.arg("ev_0_baudrate"));
+  strncpy(cfg.ev[1].pin_name, webserver.arg("ev_1_pin_name").c_str(), sizeof(cfg.ev[1].pin_name));
+  cfg.ev[1].pin_number = name2pin(webserver.arg("ev_1_pin_number"));
+  cfg.ev[1].baudrate = name2pin(webserver.arg("ev_1_baudrate"));
+  save_config();
+  webserver.send(200, "text/plain", "config written - CfOnlinestatus is rebooting");
+  for(int i = 0; i < 100; i++) {
+    webserver.handleClient();
+    delay(10);
+  }
+  ESP.restart();
+  return;
+}
+
+void ConfigPage() {
+  String page = "<!DOCTYPE html>"
+"<html lang=\"de\">"
+"  <head>"
+"    <meta charset=\"utf-8\" />"
+"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+"    <title>"
+"CfOnlinestatus configuration dialog"
+"  </title>"
+"  </head>"
+"  <body>"
+"   <h1>CfOnlinestatus configuration dialog</h1>"
+"   <form action=\"/write\" method=\"POST\">"
+"    <input type=\"hidden\" id=\"really\" name=\"really\" value=\"yes\" />"
+"    <button type=\"reset\">Reset HTML form to start value</button>"
+" <br />"
+" <fieldset>"
+"   <legend>General settings</legend>"
+"    <label for=\"chargepoint_id\">CFOS chargepoint_id</label>"
+"    <input type=\"text\" id=\"chargepoint_id\" name=\"chargepoint_id\" value=\"%%%chargepoint_id%%%\">"
+" <br />"
+" <label for=\"sensor_update_interval_s\">Sensor update interval (seconds)</label>"
+"    <input type=\"text\" id=\"sensor_update_interval_s\" name=\"sensor_update_interval_s\" value=\"%%%sensor_update_interval_s%%%\">"
+" <br />"
+" <label for=\"serial_baudrate\">Serial baudrate</label>"
+"    <input type=\"text\" id=\"serial_baudrate\" name=\"serial_baudrate\" value=\"%%%serial_baudrate%%%\">"
+" <br />"
+" <label for=\"serial_output_interval_s\">Serial output interval (seconds)</label>"
+"    <input type=\"text\" id=\"serial_output_interval_s\" name=\"serial_output_interval_s\" value=\"%%%serial_output_interval_s%%%\">"
+" <br />"
+" <label for=\"factory_default\">Type FACTORYDEFAULT in this field and click on update to reset the complete configuration</label>"
+"    <input type=\"text\" id=\"factory_default\" name=\"factory_default\" value=\"\">"
+" <br />"
+" </fieldset>"
+" <fieldset>"
+"   <legend>WiFi Settings</legend>"
+" <label for=\"wifi_ssid\">WiFi SSID</label>"
+"    <input type=\"text\" id=\"wifi_ssid\" name=\"wifi_ssid\" value=\"%%%wifi_ssid%%%\">"
+" <br />"
+" <label for=\"wifi_key\">WiFi Password</label>"
+"    <input type=\"text\" id=\"wifi_key\" name=\"wifi_key\" value=\"%%%wifi_key%%%\">"
+" <br />"
+" </fieldset>"
+""
+" "
+"<fieldset>"
+"   <legend>MQTT settings</legend>"
+" <label for=\"mqtt_server\">MQTT Servername or IP</label>"
+"    <input type=\"text\" id=\"mqtt_server\" name=\"mqtt_server\" value=\"%%%mqtt_server%%%\">"
+" <br />"
+" <label for=\"mqtt_port\">MQTT port number</label>"
+"    <input type=\"text\" id=\"mqtt_port\" name=\"mqtt_port\" value=\"%%%mqtt_port%%%\">"
+" <br />"
+" <label for=\"mqtt_username\">MQTT username</label>"
+"    <input type=\"text\" id=\"mqtt_username\" name=\"mqtt_username\" value=\"%%%mqtt_username%%%\">"
+" <br />"
+" <label for=\"mqtt_password\">MQTT password (or empty)</label>"
+"    <input type=\"text\" id=\"mqtt_password\" name=\"mqtt_password\" value=\"%%%mqtt_password%%%\">"
+" <br />"
+" <label for=\"mqtt_update_interval_s\">MQTT output interval (seconds)</label>"
+"    <input type=\"text\" id=\"mqtt_update_interval_s\" name=\"mqtt_update_interval_s\" value=\"%%%mqtt_update_interval_s%%%\">"
+" <br />"
+"</fieldset>"
+" "
+" "
+" <fieldset>"
+"   <legend>S0 input count</legend>"
+"   <input type=\"radio\" id=\"input_count_s0_0\" name=\"input_count_s0\" value=\"0\" %%%input_count_s0_0%%%>"
+"   <label for=\"input_count_s0_0\"> no S0 input</label>"
+"   <input type=\"radio\" id=\"input_count_s0_1\" name=\"input_count_s0\" value=\"1\" %%%input_count_s0_1%%%>"
+"   <label for=\"input_count_s0_1\"> 1 S0 input</label>"
+"   <input type=\"radio\" id=\"input_count_s0_2\" name=\"input_count_s0\" value=\"2\" %%%input_count_s0_2%%%>"
+"   <label for=\"input_count_s0_2\"> 2 S0 inputs</label>"
+" </fieldset>"
+" <fieldset>"
+"   <legend>first S0 input</legend>"
+" <label for=\"s0_0_pin_name\">S0 input 0 name</label>"
+"    <input type=\"text\" id=\"s0_0_pin_name\" name=\"s0_0_pin_name\" value=\"%%%s0_0_pin_name%%%\">"
+" <br />"
+" <label for=\"s0_0_pin_number\">S0 input 0 number</label>"
+"    <input type=\"text\" id=\"s0_0_pin_number\" name=\"s0_0_pin_number\" value=\"%%%s0_0_pin_number%%%\">"
+" <br />"
+"   <input type=\"radio\" id=\"s0_0_on_value_HIGH\" name=\"s0_0_on_value\" value=\"HIGH\" %%%s0_0_on_value_HIGH%%%>"
+"   <label for=\"s0_0_on_value_HIGH\"> S0_0 on=HIGH</label>"
+"   <input type=\"radio\" id=\"s0_0_on_value_LOW\" name=\"s0_0_on_value\" value=\"LOW\" %%%s0_0_on_value_LOW%%%>"
+"   <label for=\"s0_0_on_value_LOW\"> S0_0 on=LOW</label>"
+" <br />"
+"   <input type=\"radio\" id=\"s0_0_off_value_HIGH\" name=\"s0_0_off_value\" value=\"HIGH\" %%%s0_0_off_value_HIGH%%%>"
+"   <label for=\"s0_0_off_value_HIGH\"> S0_0 off=HIGH</label>"
+"   <input type=\"radio\" id=\"s0_0_off_value_LOW\" name=\"s0_0_off_value\" value=\"LOW\" %%%s0_0_off_value_LOW%%%>"
+"   <label for=\"s0_0_off_value_LOW\"> S0_0 off=LOW</label>"
+"   <br />"
+"   <input type=\"radio\" id=\"s0_0_pinmode_INPUT\" name=\"s0_0_pinmode\" value=\"INPUT\" %%%s0_0_pinmode_INPUT%%%>"
+"   <label for=\"s0_0_pinmode_INPUT\"> S0_0 pinmode=INPUT</label>"
+"   <input type=\"radio\" id=\"s0_0_pinmode_INPUT_PULLUP\" name=\"s0_0_pinmode\" value=\"INPUT_PULLUP\" %%%s0_0_pinmode_INPUT_PULLUP%%%>"
+"   <label for=\"s0_0_pinmode_INPUT_PULLUP\"> S0_0 pinmode=INPUT_PULLUP</label>"
+"   <br />"
+" <label for=\"s0_0_impulses_per_kWh\">S0 input 0 impulses per kWh</label>"
+"    <input type=\"text\" id=\"s0_0_impulses_per_kWh\" name=\"s0_0_impulses_per_kWh\" value=\"%%%s0_0_impulses_per_kWh%%%\">"
+" </fieldset>"
+"   <fieldset>"
+"   <legend>second S0 input</legend>"
+" <label for=\"s0_1_pin_name\">S0 input 1 name</label>"
+"    <input type=\"text\" id=\"s0_1_pin_name\" name=\"s0_1_pin_name\" value=\"%%%s0_1_pin_name%%%\">"
+" <br />"
+" <label for=\"s0_1_pin_number\">S0 input 1 number</label>"
+"    <input type=\"text\" id=\"s0_1_pin_number\" name=\"s0_1_pin_number\" value=\"%%%s0_1_pin_number%%%\">"
+" <br />"
+"   <input type=\"radio\" id=\"s0_1_on_value_HIGH\" name=\"s0_1_on_value\" value=\"HIGH\" %%%s0_1_on_value_HIGH%%%>"
+"   <label for=\"s0_1_on_value_HIGH\"> S0_1 on=HIGH</label>"
+"   <input type=\"radio\" id=\"s0_1_on_value_LOW\" name=\"s0_1_on_value\" value=\"LOW\" %%%s0_1_on_value_LOW%%%>"
+"   <label for=\"s0_1_on_value_LOW\"> S0_1 on=LOW</label>"
+" <br />"
+"   <input type=\"radio\" id=\"s0_1_off_value_HIGH\" name=\"s0_1_off_value\" value=\"HIGH\" %%%s0_1_off_value_HIGH%%%>"
+"   <label for=\"s0_1_off_value_HIGH\"> S0_1 off=HIGH</label>"
+"   <input type=\"radio\" id=\"s0_1_off_value_LOW\" name=\"s0_1_off_value\" value=\"LOW\" %%%s0_1_off_value_LOW%%%>"
+"   <label for=\"s0_1_off_value_LOW\"> S0_1 off=LOW</label>"
+"   <br />"
+"   <input type=\"radio\" id=\"s0_1_pinmode_INPUT\" name=\"s0_1_pinmode\" value=\"INPUT\" %%%s0_1_pinmode_INPUT%%%>"
+"   <label for=\"s0_1_pinmode_INPUT\"> S0_1 pinmode=INPUT</label>"
+"   <input type=\"radio\" id=\"s0_1_pinmode_INPUT_PULLUP\" name=\"s0_1_pinmode\" value=\"INPUT_PULLUP\" %%%s0_1_pinmode_INPUT_PULLUP%%%>"
+"   <label for=\"s0_1_pinmode_INPUT_PULLUP\"> S0_1 pinmode=INPUT_PULLUP</label>"
+"   <br />"
+" <label for=\"s0_1_impulses_per_kWh\">S0 input 1 impulses per kWh</label>"
+"    <input type=\"text\" id=\"s0_1_impulses_per_kWh\" name=\"s0_1_impulses_per_kWh\" value=\"%%%s0_1_impulses_per_kWh%%%\">"
+" </fieldset>"
+" "
+" "
+" <br />"
+" <fieldset>"
+"   <legend>digital input count</legend>"
+"   <input type=\"radio\" id=\"input_count_di_0\" name=\"input_count_di\" value=\"0\" %%%input_count_di_0%%%>"
+"   <label for=\"input_count_di_0\"> no digital input</label>"
+"   <input type=\"radio\" id=\"input_count_di_1\" name=\"input_count_di\" value=\"1\" %%%input_count_di_1%%%>"
+"   <label for=\"input_count_di_1\"> 1 digital input</label>"
+"   <input type=\"radio\" id=\"input_count_di_2\" name=\"input_count_di\" value=\"2\" %%%input_count_di_2%%%>"
+"   <label for=\"input_count_di_2\"> 2 digital inputs</label>"
+" </fieldset>"
+"   <fieldset>"
+"   <legend>first digital input</legend>"
+" <label for=\"di_0_pin_name\">digital input 0 name</label>"
+"    <input type=\"text\" id=\"di_0_pin_name\" name=\"di_0_pin_name\" value=\"%%%di_0_pin_name%%%\">"
+" <br />"
+" <label for=\"di_0_pin_number\">digital input 0 number</label>"
+"    <input type=\"text\" id=\"di_0_pin_number\" name=\"di_0_pin_number\" value=\"%%%di_0_pin_number%%%\">"
+" <br />"
+"   <input type=\"radio\" id=\"di_0_on_value_HIGH\" name=\"di_0_on_value\" value=\"HIGH\" %%%di_0_on_value_HIGH%%%>"
+"   <label for=\"di_0_on_value_HIGH\"> digital_0 on=HIGH</label>"
+"   <input type=\"radio\" id=\"di_0_on_value_LOW\" name=\"di_0_on_value\" value=\"LOW\" %%%di_0_on_value_LOW%%%>"
+"   <label for=\"di_0_on_value_LOW\"> digital_0 on=LOW</label>"
+" <br />"
+"   <input type=\"radio\" id=\"di_0_off_value_HIGH\" name=\"di_0_off_value\" value=\"HIGH\" %%%di_0_off_value_HIGH%%%>"
+"   <label for=\"di_0_off_value_HIGH\"> digital_0 off=HIGH</label>"
+"   <input type=\"radio\" id=\"di_0_off_value_LOW\" name=\"di_0_off_value\" value=\"LOW\" %%%di_0_off_value_LOW%%%>"
+"   <label for=\"di_0_off_value_LOW\"> digital_0 off=LOW</label>"
+"   <br />"
+"   <input type=\"radio\" id=\"di_0_pinmode_INPUT\" name=\"di_0_pinmode\" value=\"INPUT\" %%%di_0_pinmode_INPUT%%%>"
+"   <label for=\"di_0_pinmode_INPUT\"> digital_0 pinmode=INPUT</label>"
+"   <input type=\"radio\" id=\"di_0_pinmode_INPUT_PULLUP\" name=\"di_0_pinmode\" value=\"INPUT_PULLUP\" %%%di_0_pinmode_INPUT_PULLUP%%%>"
+"   <label for=\"di_0_pinmode_INPUT_PULLUP\"> digital_0 pinmode=INPUT_PULLUP</label>"
+" </fieldset>"
+" <fieldset>"
+"   <legend>second digital input</legend>"
+" <label for=\"di_1_pin_name\">digital input 1 name</label>"
+"    <input type=\"text\" id=\"di_1_pin_name\" name=\"di_1_pin_name\" value=\"%%%di_1_pin_name%%%\">"
+" <br />"
+" <label for=\"di_1_pin_number\">digital input 1 number</label>"
+"    <input type=\"text\" id=\"di_1_pin_number\" name=\"di_1_pin_number\" value=\"%%%di_1_pin_number%%%\">"
+" <br />"
+"   <input type=\"radio\" id=\"di_1_on_value_HIGH\" name=\"di_1_on_value\" value=\"HIGH\" %%%di_1_on_value_HIGH%%%>"
+"   <label for=\"di_1_on_value_HIGH\"> digital_1 on=HIGH</label>"
+"   <input type=\"radio\" id=\"di_1_on_value_LOW\" name=\"di_1_on_value\" value=\"LOW\" %%%di_1_on_value_LOW%%%>"
+"   <label for=\"di_1_on_value_LOW\"> digital_1 on=LOW</label>"
+" <br />"
+"   <input type=\"radio\" id=\"di_1_off_value_HIGH\" name=\"di_1_off_value\" value=\"HIGH\" %%%di_1_off_value_HIGH%%%>"
+"   <label for=\"di_1_off_value_HIGH\"> digital_1 off=HIGH</label>"
+"   <input type=\"radio\" id=\"di_1_off_value_LOW\" name=\"di_1_off_value\" value=\"LOW\" %%%di_1_off_value_LOW%%%>"
+"   <label for=\"di_1_off_value_LOW\"> digital_1 off=LOW</label>"
+"   <br />"
+"   <input type=\"radio\" id=\"di_1_pinmode_INPUT\" name=\"di_1_pinmode\" value=\"INPUT\" %%%di_1_pinmode_INPUT%%%>"
+"   <label for=\"di_1_pinmode_INPUT\"> digital_1 pinmode=INPUT</label>"
+"   <input type=\"radio\" id=\"di_1_pinmode_INPUT_PULLUP\" name=\"di_1_pinmode\" value=\"INPUT_PULLUP\" %%%di_1_pinmode_INPUT_PULLUP%%%>"
+"   <label for=\"di_1_pinmode_INPUT_PULLUP\"> digital_1 pinmode=INPUT_PULLUP</label>"
+" </fieldset>"
+" <br />"
+" <fieldset>"
+"   <legend>CP analog input count on A0</legend>"
+"   <input type=\"radio\" id=\"input_count_cp_0\" name=\"input_count_cp\" value=\"0\" %%%input_count_cp_0%%%>"
+"   <label for=\"input_count_cp_0\"> no analog CP input</label>"
+"   <input type=\"radio\" id=\"input_count_cp_1\" name=\"input_count_cp\" value=\"1\" %%%input_count_cp_1%%%>"
+"   <label for=\"input_count_cp_1\"> 1 analog CP input</label>"
+" </fieldset>"
+" <br />"
+" <fieldset>"
+"   <legend>HC-SR04 ultrasound input count</legend>"
+"   <input type=\"radio\" id=\"input_count_us_0\" name=\"input_count_us\" value=\"0\" %%%input_count_us_0%%%>"
+"   <label for=\"input_count_us_0\"> no ultrasound input</label>"
+"   <input type=\"radio\" id=\"input_count_us_1\" name=\"input_count_us\" value=\"1\" %%%input_count_us_1%%%>"
+"   <label for=\"input_count_us_1\"> 1 ultrasound input</label>"
+"   <input type=\"radio\" id=\"input_count_us_2\" name=\"input_count_us\" value=\"2\" %%%input_count_us_2%%%>"
+"   <label for=\"input_count_us_2\"> 2 ultrasound inputs</label>"
+" </fieldset>"
+""
+" <fieldset>"
+"   <legend>first HC-SR04 ultrasound input</legend>"
+" <label for=\"us_0_pin_name\">name</label>"
+"    <input type=\"text\" id=\"us_0_pin_name\" name=\"us_0_pin_name\" value=\"%%%us_0_pin_name%%%\">"
+" <br />"
+" <label for=\"us_0_trigger_pin\">trigger pin</label>"
+"    <input type=\"text\" id=\"us_0_trigger_pin\" name=\"us_0_trigger_pin\" value=\"%%%us_0_trigger_pin%%%\">"
+" <br />"
+" <input type=\"radio\" id=\"us_0_trigger_on_HIGH\" name=\"us_0_trigger_on\" value=\"HIGH\" %%%us_0_trigger_on_HIGH%%%>"
+"   <label for=\"us_0_trigger_on_HIGH\">  trigger_on=HIGH</label>"
+"   <input type=\"radio\" id=\"us_0_trigger_on_LOW\" name=\"us_0_trigger_on\" value=\"LOW\" %%%us_0_trigger_on_LOW%%%>"
+"   <label for=\"us_0_trigger_on_LOW\">  trigger_on=LOW</label>"
+" <br />"
+" <input type=\"radio\" id=\"us_0_trigger_off_HIGH\" name=\"us_0_trigger_off\" value=\"HIGH\" %%%us_0_trigger_off_HIGH%%%>"
+"   <label for=\"us_0_trigger_off_HIGH\">  trigger_off=HIGH</label>"
+"   <input type=\"radio\" id=\"us_0_trigger_off_LOW\" name=\"us_0_trigger_off\" value=\"LOW\" %%%us_0_trigger_off_LOW%%%>"
+"   <label for=\"us_0_trigger_off_LOW\">  trigger_off=LOW</label>"
+" <br />"
+" <label for=\"us_0_echo_pin\">echo pin</label>"
+"    <input type=\"text\" id=\"us_0_echo_pin\" name=\"us_0_echo_pin\" value=\"%%%us_0_echo_pin%%%\">"
+" <br />"
+" <input type=\"radio\" id=\"us_0_echo_on_HIGH\" name=\"us_0_echo_on\" value=\"HIGH\" %%%us_0_echo_on_HIGH%%%>"
+"   <label for=\"us_0_echo_on_HIGH\">  echo_on=HIGH</label>"
+"   <input type=\"radio\" id=\"us_0_echo_on_LOW\" name=\"us_0_echo_on\" value=\"LOW\" %%%us_0_echo_on_LOW%%%>"
+"   <label for=\"us_0_echo_on_LOW\">  echo_on=LOW</label>"
+"     <br />"
+" <label for=\"us_0_timeout_us\">timeout in microseconds (multiply max cm by 58, add 10%)</label>"
+"    <input type=\"text\" id=\"us_0_timeout_us\" name=\"us_0_timeout_us\" value=\"%%%us_0_timeout_us%%%\">"
+" <br />"
+" <label for=\"us_0_free_distance\">how many cm = free</label>"
+"    <input type=\"text\" id=\"us_0_free_distance\" name=\"us_0_free_distance\" value=\"%%%us_0_free_distance%%%\">"
+" </fieldset>"
+"   <fieldset>"
+"   <legend>second HC-SR04 ultrasound input</legend>"
+" <label for=\"us_1_pin_name\">name</label>"
+"    <input type=\"text\" id=\"us_1_pin_name\" name=\"us_1_pin_name\" value=\"%%%us_1_pin_name%%%\">"
+" <br />"
+" <label for=\"us_1_trigger_pin\">trigger pin</label>"
+"    <input type=\"text\" id=\"us_1_trigger_pin\" name=\"us_1_trigger_pin\" value=\"%%%us_1_trigger_pin%%%\">"
+" <br />"
+" <input type=\"radio\" id=\"us_1_trigger_on_HIGH\" name=\"us_1_trigger_on\" value=\"HIGH\" %%%us_1_trigger_on_HIGH%%%>"
+"   <label for=\"us_1_trigger_on_HIGH\">  trigger_on=HIGH</label>"
+"   <input type=\"radio\" id=\"us_1_trigger_on_LOW\" name=\"us_1_trigger_on\" value=\"LOW\" %%%us_1_trigger_on_LOW%%%>"
+"   <label for=\"us_1_trigger_on_LOW\">  trigger_on=LOW</label>"
+" <br />"
+" <input type=\"radio\" id=\"us_1_trigger_off_HIGH\" name=\"us_1_trigger_off\" value=\"HIGH\" %%%us_1_trigger_off_HIGH%%%>"
+"   <label for=\"us_1_trigger_off_HIGH\">  trigger_off=HIGH</label>"
+"   <input type=\"radio\" id=\"us_1_trigger_off_LOW\" name=\"us_1_trigger_off\" value=\"LOW\" %%%us_1_trigger_off_LOW%%%>"
+"   <label for=\"us_1_trigger_off_LOW\">  trigger_off=LOW</label>"
+" <br />"
+" <label for=\"us_1_echo_pin\">echo pin</label>"
+"    <input type=\"text\" id=\"us_1_echo_pin\" name=\"us_1_echo_pin\" value=\"%%%us_1_echo_pin%%%\">"
+" <br />"
+" <input type=\"radio\" id=\"us_1_echo_on_HIGH\" name=\"us_1_echo_on\" value=\"HIGH\" %%%us_1_echo_on_HIGH%%%>"
+"   <label for=\"us_1_echo_on_HIGH\">  echo_on=HIGH</label>"
+"   <input type=\"radio\" id=\"us_1_echo_on_LOW\" name=\"us_1_echo_on\" value=\"LOW\" %%%us_1_echo_on_LOW%%%>"
+"   <label for=\"us_1_echo_on_LOW\">  echo_on=LOW</label>"
+"     <br />"
+" <label for=\"us_1_timeout_us\">timeout in microseconds (multiply max cm by 58, add 10%)</label>"
+"    <input type=\"text\" id=\"us_1_timeout_us\" name=\"us_1_timeout_us\" value=\"%%%us_1_timeout_us%%%\">"
+" <br />"
+" <label for=\"us_1_free_distance\">how many cm = free</label>"
+"    <input type=\"text\" id=\"us_1_free_distance\" name=\"us_1_free_distance\" value=\"%%%us_1_free_distance%%%\">"
+" </fieldset>"
+" <br />"
+" <fieldset>"
+"   <legend>SmartEVSE serial input count</legend>"
+"   <input type=\"radio\" id=\"input_count_ev_0\" name=\"input_count_ev\" value=\"0\" %%%input_count_ev_0%%%>"
+"   <label for=\"input_count_ev_0\"> no SmartEVSE serial input</label>"
+"   <input type=\"radio\" id=\"input_count_ev_1\" name=\"input_count_ev\" value=\"1\" %%%input_count_ev_1%%%>"
+"   <label for=\"input_count_ev_1\"> 1 SmartEVSE serial input</label>"
+"   <input type=\"radio\" id=\"input_count_ev_2\" name=\"input_count_ev\" value=\"2\" %%%input_count_ev_2%%%>"
+"   <label for=\"input_count_ev_2\"> 2 SmartEVSE serial inputs</label>"
+" </fieldset>"
+"  <fieldset>"
+"   <legend>first SmartEVSE serial input</legend>"
+"     <label for=\"ev_0_pin_name\">name</label>"
+"    <input type=\"text\" id=\"ev_0_pin_name\" name=\"ev_0_pin_name\" value=\"%%%ev_0_pin_name%%%\">"
+" <br />"
+" <label for=\"ev_0_pin_number\">pin number</label>"
+"    <input type=\"text\" id=\"ev_0_pin_number\" name=\"ev_0_pin_number\" value=\"%%%ev_0_pin_number%%%\">"
+" <br />"
+" <label for=\"ev_0_baudrate\">baud rate</label>"
+"    <input type=\"text\" id=\"ev_0_baudrate\" name=\"ev_0_baudrate\" value=\"%%%ev_0_baudrate%%%\">"
+" <br />"
+"   </fieldset>"
+"     <fieldset>"
+"   <legend>second SmartEVSE serial input</legend>"
+"     <label for=\"ev_1_pin_name\">name</label>"
+"    <input type=\"text\" id=\"ev_1_pin_name\" name=\"ev_1_pin_name\" value=\"%%%ev_1_pin_name%%%\">"
+" <br />"
+" <label for=\"ev_1_pin_number\">pin number</label>"
+"    <input type=\"text\" id=\"ev_1_pin_number\" name=\"ev_1_pin_number\" value=\"%%%ev_1_pin_number%%%\">"
+" <br />"
+" <label for=\"ev_1_baudrate\">baud rate</label>"
+"    <input type=\"text\" id=\"ev_1_baudrate\" name=\"ev_1_baudrate\" value=\"%%%ev_1_baudrate%%%\">"
+" <br />"
+"   </fieldset>"
+" <button type=\"submit\">Save settings and reboot CfOnlinestatus</button>"
+"   </form>"
+"  </body>"
+"</html>";
+
+  page.replace("%%%chargepoint_id%%%", cfg.chargepoint_id);
+  page.replace("%%%sensor_update_interval_s%%%", String(cfg.sensor_update_interval_s));
+  page.replace("%%%serial_baudrate%%%", String(cfg.serial_baudrate));
+  page.replace("%%%serial_output_interval_s%%%", String(cfg.serial_output_interval_s));
+  page.replace("%%%wifi_ssid%%%", cfg.wifi_ssid);
+  page.replace("%%%wifi_key%%%", cfg.wifi_key);
+  page.replace("%%%mqtt_server%%%", cfg.mqtt_server);
+  page.replace("%%%mqtt_port%%%", String(cfg.mqtt_port));
+  page.replace("%%%mqtt_username%%%", cfg.mqtt_username);
+  page.replace("%%%mqtt_password%%%", cfg.mqtt_password);
+  page.replace("%%%mqtt_update_interval_s%%%", String(cfg.mqtt_update_interval_s));
+  page.replace("%%%input_count_s0_0%%%", (cfg.input_count_s0==0)?"checked":"");
+  page.replace("%%%input_count_s0_1%%%", (cfg.input_count_s0==1)?"checked":"");
+  page.replace("%%%input_count_s0_2%%%", (cfg.input_count_s0==2)?"checked":"");
+  page.replace("%%%s0_0_pin_name%%%", cfg.s0[0].pin_name);
+  page.replace("%%%s0_0_pin_number%%%", pin2name(cfg.s0[0].pin_number));
+  page.replace("%%%s0_0_on_value_HIGH%%%", (cfg.s0[0].on_value==HIGH)?"checked":"");
+  page.replace("%%%s0_0_on_value_LOW%%%", (cfg.s0[0].on_value==LOW)?"checked":"");
+  page.replace("%%%s0_0_off_value_HIGH%%%", (cfg.s0[0].off_value==HIGH)?"checked":"");
+  page.replace("%%%s0_0_off_value_LOW%%%", (cfg.s0[0].off_value==LOW)?"checked":"");
+  page.replace("%%%s0_0_pinmode_INPUT%%%", (cfg.s0[0].pin_mode==INPUT)?"checked":"");
+  page.replace("%%%s0_0_pinmode_INPUT_PULLUP%%%", (cfg.s0[0].pin_mode==INPUT_PULLUP)?"checked":"");
+  page.replace("%%%s0_0_impulses_per_kWh%%%", String(cfg.s0_impulses_per_kWh[0]));
+  page.replace("%%%s0_1_pin_name%%%", cfg.s0[1].pin_name);
+  page.replace("%%%s0_1_pin_number%%%", pin2name(cfg.s0[1].pin_number));
+  page.replace("%%%s0_1_on_value_HIGH%%%", (cfg.s0[1].on_value==HIGH)?"checked":"");
+  page.replace("%%%s0_1_on_value_LOW%%%", (cfg.s0[1].on_value==LOW)?"checked":"");
+  page.replace("%%%s0_1_off_value_HIGH%%%", (cfg.s0[1].off_value==HIGH)?"checked":"");
+  page.replace("%%%s0_1_off_value_LOW%%%", (cfg.s0[1].off_value==LOW)?"checked":"");
+  page.replace("%%%s0_1_pinmode_INPUT%%%", (cfg.s0[1].pin_mode==INPUT)?"checked":"");
+  page.replace("%%%s0_1_pinmode_INPUT_PULLUP%%%", (cfg.s0[1].pin_mode==INPUT_PULLUP)?"checked":"");
+  page.replace("%%%s0_1_impulses_per_kWh%%%", String(cfg.s0_impulses_per_kWh[1]));
+  page.replace("%%%input_count_di_0%%%", (cfg.input_count_di==0)?"checked":"");
+  page.replace("%%%input_count_di_1%%%", (cfg.input_count_di==1)?"checked":"");
+  page.replace("%%%input_count_di_2%%%", (cfg.input_count_di==2)?"checked":"");
+  page.replace("%%%di_0_pin_name%%%", cfg.di[0].pin_name);
+  page.replace("%%%di_0_pin_number%%%", pin2name(cfg.di[0].pin_number));
+  page.replace("%%%di_0_on_value_HIGH%%%", (cfg.di[0].on_value==HIGH)?"checked":"");
+  page.replace("%%%di_0_on_value_LOW%%%", (cfg.di[0].on_value==LOW)?"checked":"");
+  page.replace("%%%di_0_off_value_HIGH%%%", (cfg.di[0].off_value==HIGH)?"checked":"");
+  page.replace("%%%di_0_off_value_LOW%%%", (cfg.di[0].off_value==LOW)?"checked":"");
+  page.replace("%%%di_0_pinmode_INPUT%%%", (cfg.di[0].pin_mode==INPUT)?"checked":"");
+  page.replace("%%%di_0_pinmode_INPUT_PULLUP%%%", (cfg.di[0].pin_mode==INPUT_PULLUP)?"checked":"");
+  page.replace("%%%di_1_pin_name%%%", cfg.di[1].pin_name);
+  page.replace("%%%di_1_pin_number%%%", pin2name(cfg.di[1].pin_number));
+  page.replace("%%%di_1_on_value_HIGH%%%", (cfg.di[1].on_value==HIGH)?"checked":"");
+  page.replace("%%%di_1_on_value_LOW%%%", (cfg.di[1].on_value==LOW)?"checked":"");
+  page.replace("%%%di_1_off_value_HIGH%%%", (cfg.di[1].off_value==HIGH)?"checked":"");
+  page.replace("%%%di_1_off_value_LOW%%%", (cfg.di[1].off_value==LOW)?"checked":"");
+  page.replace("%%%di_1_pinmode_INPUT%%%", (cfg.di[1].pin_mode==INPUT)?"checked":"");
+  page.replace("%%%di_1_pinmode_INPUT_PULLUP%%%", (cfg.di[1].pin_mode==INPUT_PULLUP)?"checked":"");
+  page.replace("%%%input_count_cp_0%%%", (cfg.input_count_cp==0)?"checked":"");
+  page.replace("%%%input_count_cp_1%%%", (cfg.input_count_cp==1)?"checked":"");
+  page.replace("%%%input_count_us_0%%%", (cfg.input_count_us==0)?"checked":"");
+  page.replace("%%%input_count_us_1%%%", (cfg.input_count_us==1)?"checked":"");
+  page.replace("%%%input_count_us_2%%%", (cfg.input_count_us==2)?"checked":"");
+  page.replace("%%%us_0_pin_name%%%", cfg.us[0].sensor_name);
+  page.replace("%%%us_0_trigger_pin%%%", pin2name(cfg.us[0].trigger_pin));
+  page.replace("%%%us_0_echo_pin%%%", pin2name(cfg.us[0].echo_pin));
+  page.replace("%%%us_0_trigger_on_HIGH%%%", (cfg.us[0].trigger_on==HIGH)?"checked":"");
+  page.replace("%%%us_0_trigger_on_LOW%%%", (cfg.us[0].trigger_on==LOW)?"checked":"");
+  page.replace("%%%us_0_trigger_off_HIGH%%%", (cfg.us[0].trigger_off==HIGH)?"checked":"");
+  page.replace("%%%us_0_trigger_off_LOW%%%", (cfg.us[0].trigger_off==LOW)?"checked":"");
+  page.replace("%%%us_0_echo_on_HIGH%%%", (cfg.us[0].echo_on==HIGH)?"checked":"");
+  page.replace("%%%us_0_echo_on_LOW%%%", (cfg.us[0].echo_on==LOW)?"checked":"");
+  page.replace("%%%us_0_timeout_us%%%", String(cfg.us[0].timeout_us));
+  page.replace("%%%us_0_free_distance%%%", String(cfg.us[0].free_distance));
+  page.replace("%%%us_1_pin_name%%%", cfg.us[1].sensor_name);
+  page.replace("%%%us_1_trigger_pin%%%", pin2name(cfg.us[1].trigger_pin));
+  page.replace("%%%us_1_echo_pin%%%", pin2name(cfg.us[1].echo_pin));
+  page.replace("%%%us_1_trigger_on_HIGH%%%", (cfg.us[1].trigger_on==HIGH)?"checked":"");
+  page.replace("%%%us_1_trigger_on_LOW%%%", (cfg.us[1].trigger_on==LOW)?"checked":"");
+  page.replace("%%%us_1_trigger_off_HIGH%%%", (cfg.us[1].trigger_off==HIGH)?"checked":"");
+  page.replace("%%%us_1_trigger_off_LOW%%%", (cfg.us[1].trigger_off==LOW)?"checked":"");
+  page.replace("%%%us_1_echo_on_HIGH%%%", (cfg.us[1].echo_on==HIGH)?"checked":"");
+  page.replace("%%%us_1_echo_on_LOW%%%", (cfg.us[1].echo_on==LOW)?"checked":"");
+  page.replace("%%%us_1_timeout_us%%%", String(cfg.us[1].timeout_us));
+  page.replace("%%%us_1_free_distance%%%", String(cfg.us[1].free_distance));
+  page.replace("%%%input_count_ev_0%%%", (cfg.input_count_ev==0)?"checked":"");
+  page.replace("%%%input_count_ev_1%%%", (cfg.input_count_ev==1)?"checked":"");
+  page.replace("%%%input_count_ev_2%%%", (cfg.input_count_ev==2)?"checked":"");
+  page.replace("%%%ev_0_pin_name%%%", cfg.ev[0].pin_name);
+  page.replace("%%%ev_0_pin_number%%%", pin2name(cfg.ev[0].pin_number));
+  page.replace("%%%ev_0_baudrate%%%", String(cfg.ev[0].baudrate));
+  page.replace("%%%ev_1_pin_name%%%", cfg.ev[1].pin_name);
+  page.replace("%%%ev_1_pin_number%%%", pin2name(cfg.ev[1].pin_number));
+  page.replace("%%%ev_1_baudrate%%%", String(cfg.ev[1].baudrate));
+
+  webserver.send(200, "text/html", page);
+}
+
+String pin2name(uint8_t pin) {
+  switch(pin) {
+    case D0:
+      return "D0";
+      break;
+    case D1:
+      return "D1";
+      break;
+    case D2:
+      return "D2";
+      break;
+    case D3:
+      return "D3";
+      break;
+    case D4:
+      return "D4";
+      break;
+    case D5:
+      return "D5";
+      break;
+    case D6:
+      return "D6";
+      break;
+    case D7:
+      return "D7";
+      break;
+    case D8:
+      return "D8";
+      break;
+    case A0:
+      return "A0";
+      break;
+  }
+  return "INVALID";
+}
+uint8_t name2pin(String name) {
+  if(name=="A0") return A0;
+  if(name=="D0") return D0;
+  if(name=="D1") return D1;
+  if(name=="D2") return D2;
+  if(name=="D3") return D3;
+  if(name=="D4") return D4;
+  if(name=="D5") return D5;
+  if(name=="D6") return D6;
+  if(name=="D7") return D7;
+  if(name=="D8") return D8;
+  return 255;
+}
+uint8_t name2hilo(String name) {
+  if(name=="HIGH") return HIGH;
+  if(name=="LOW") return LOW;
+  return 255;
+}
+uint8_t name2input(String name) {
+  if(name=="INPUT") return HIGH;
+  if(name=="INPUT_PULLUP") return INPUT_PULLUP;
+  return 255;
 }
 
