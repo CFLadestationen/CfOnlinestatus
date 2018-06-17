@@ -1,57 +1,100 @@
 /**
- * CfOnlinestatus
+ * CfOnlinestatus v2 - ESP-ONLY
  * Remotely reading the status of an EV charging station and sending it to an endpoint.
  * Repository: https://github.com/CFLadestationen/CfOnlinestatus
  *
- * Configuration settings go into cfos_config.h
+ * Configuration via web interface
  * Only change here if you know what you're doing.
  * If you add a bugfix, please submit it via GitHub!
  */
 
-#include "cfos_config.h"
-
-#if defined(ARDUINO_ESP8266_WEMOS_D1MINI)
-#define CFOS_HARDWARE_PLATFORM ("WeMos D1 R2 & mini")
-#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
-#define CFOS_HARDWARE_PLATFORM ("WeMos D1 mini Pro")
-#elif defined(ESP8266)
-#define CFOS_HARDWARE_PLATFORM ("Generic ESP8266")
-#elif defined(ARDUINO_AVR_UNO)
-#define CFOS_HARDWARE_PLATFORM ("Arduino/Genuino Uno")
-#else
-#define CFOS_HARDWARE_PLATFORM ("unknown")
-#error CfOnlinestatus does not know this hardware platform - please fix!
-#endif //Hardware
-
-#if (defined(CFOS_OUT_MQTT)) && (!defined(CFOS_NET_WIFI) && !defined(CFOS_NET_ETHERNET) && !defined(CFOS_NET_GSM))
-#error MQTT output selected, but no network access method defined
-#endif //Network check
-
-#if (defined(CFOS_NET_WIFI) && defined(CFOS_NET_ETHERNET)) || (defined(CFOS_NET_WIFI) && defined(CFOS_NET_GSM)) || (defined(CFOS_NET_ETHERNET) && defined(CFOS_NET_GSM))
-#error Only one network access method is allowed
-#endif //Network access
- 
-#if defined(CFOS_NET_WIFI)
-#if defined(ESP8266)
+#include "cfos_types.h"
+#include <EEPROM.h>
 #include <ESP8266WiFi.h>
-WiFiClient wifi_client;
-#else //not ESP8266
-#error CfOnlinestatus does not know how to use WiFi with this device!
-#endif //ESP8266
-#endif //CFOS_NET_WIFI
+#include <CRC32.h>
+cfos_config cfg;
 
-#if defined(CFOS_NET_ETHERNET)
-#if defined(ARDUINO_AVR_UNO)
-#include <SPI.h>
-#include <Ethernet.h>
-EthernetClient ethernet_client;
-const uint32_t ethernet_dhcp_renew_interval = 1000 * ethernet_dhcp_renew_s;
-uint32_t last_ethernet_dhcp_renew;
-#else //not Arduino/Genuino Uno
-#error CfOnlinestatus does not know how to use Ethernet with this device!
-#endif //Arduino/Genuino Uno
-#endif //CFOS_NET_ETHERNET
+#include "SoftwareSerial.h"
+SoftwareSerial* evse_serial[2];
+evse_state evse_status[2];
+uint32_t last_evse_change[2];
+char evse_buffer[2][12];
+uint8_t evse_buffer_pos[2];
 
+#include <PubSubClient.h>
+PubSubClient mqtt_client;
+uint32_t last_mqtt_output;
+char mqtt_topic_buf[80];
+char mqtt_msg_buf[80];
+bool last_mqtt_connected;
+bool current_mqtt_connected;
+uint32_t mqtt_update_interval; // = 1000 * mqtt_update_interval_s;
+
+uint32_t last_sensor_update;
+uint32_t sensor_update_interval; // = 1000 * sensor_update_interval_s;
+uint32_t last_serial_output;
+uint32_t serial_output_interval; // = 1000 * serial_output_interval_s;
+uint32_t last_s0_millis[2];
+uint32_t last_s0_span[2];
+uint8_t  last_s0_state[2];
+uint32_t impulses_since_update[2];
+uint32_t impulses_in_previous_timeframe[2];
+
+uint8_t di_value[2];
+
+uint8_t analogvals[100];
+uint8_t analogpos=0;
+uint16_t analogsum = 0;
+uint32_t last_nonzero_analog = 0;
+
+uint32_t us_duration[2];
+
+void setup() {
+  Serial.begin(115200);
+  while(!Serial) {}
+  Serial.println();
+  Serial.println();
+
+  init_config();
+  
+/*  
+  last_sensor_update = 0;
+  init_serial();
+  init_inputs();
+  init_network();
+  init_lora();
+  init_mqtt();
+  init_smartevse();
+  pinMode(D1, OUTPUT);
+  digitalWrite(D1, LOW);
+    pinMode(D4, OUTPUT);
+  digitalWrite(D4, HIGH);
+
+#if defined(CFOS_OUT_SERIAL)
+  Serial.println("CfOnlinestatus initialisation complete.");
+#endif //CFOS_OUT_SERIAL */
+}
+
+void loop() {
+/*  uint32_t current_time = millis();
+  read_s0_inputs();
+  read_evse_buffers();
+  read_cp_input();
+  if(((uint32_t)(current_time-last_sensor_update)) >= sensor_update_interval) {
+    last_sensor_update = current_time;
+    update_s0();
+    update_digital_input();
+    //update_analog_input();
+    update_ultrasound();
+  }
+  ethernet_renew_dhcp();
+  output_serial_interval();
+  output_mqtt_interval();
+  output_lora_interval(); */
+}
+
+
+/* TODO LoRa
 #if defined(CFOS_OUT_LORA)
 #if defined(ARDUINO_AVR_UNO)
 const uint32_t lora_update_interval = 1000 * lora_update_interval_s;
@@ -66,109 +109,45 @@ uint32_t last_lora_output;
 #error CfOnlinestatus does not know how to use LoRa with this device!
 #endif //ARDUINO_AVR_UNO
 #endif //CFOS_OUT_LORA
+*/
 
-#if defined(CFOS_IN_SMARTEVSE)
-#if !defined(ESP8266)
-#error CfOnlinestatus only supports ESP8266 for SmartEVSE input!
-#endif //!ESP8266
-const uint8_t evse_pincount = sizeof(evse_input)/sizeof(evse_input[0]);
-static_assert(evse_pincount>0, "SmartEVSE input selected, but no SmartEVSE input pins defined");
-#include "SoftwareSerial.h"
-SoftwareSerial* evse_serial[evse_pincount];
-evse_state evse_status[evse_pincount];
-uint32_t last_evse_change[evse_pincount];
-char evse_buffer[evse_pincount][12];
-uint8_t evse_buffer_pos[evse_pincount];
-#endif //CFOS_IN_SMARTEVSE
 
-#if defined(CFOS_OUT_MQTT)
-#include <PubSubClient.h>
-PubSubClient mqtt_client;
-uint32_t last_mqtt_output;
-char mqtt_topic_buf[80];
-char mqtt_msg_buf[80];
-bool last_mqtt_connected;
-bool current_mqtt_connected;
-const uint32_t mqtt_update_interval = 1000 * mqtt_update_interval_s;
-static_assert(mqtt_update_interval>29999, "MQTT update interval must be 30 seconds or more");
-#endif //CFOS_OUT_MQTT
 
-// Internal variables
-uint32_t last_sensor_update;
-const uint32_t sensor_update_interval = 1000 * sensor_update_interval_s;
-#if defined(CFOS_OUT_SERIAL)
-uint32_t last_serial_output;
-const uint32_t serial_output_interval = 1000 * serial_output_interval_s;
-#endif //CFOS_OUT_SERIAL
-#if defined(CFOS_IN_S0)
-const uint8_t s0_pincount = sizeof(s0)/sizeof(s0[0]);
-static_assert(s0_pincount>0, "S0 input selected, but no S0 input pins defined");
-uint32_t last_s0_millis[s0_pincount];
-uint32_t last_s0_span[s0_pincount];
-uint8_t  last_s0_state[s0_pincount];
-uint32_t impulses_since_update[s0_pincount];
-uint32_t impulses_in_previous_timeframe[s0_pincount];
-#endif //CFOS_IN_S0
-#if defined(CFOS_IN_DIGITAL)
-const uint8_t di_pincount = sizeof(digital_input)/sizeof(digital_input[0]);
-static_assert(di_pincount>0, "Digital input selected, but no digital input pins defined");
-uint8_t di_value[di_pincount];
-#endif //CFOS_IN_DIGITAL
-#if defined(CFOS_IN_ANALOG)
-const uint8_t ai_pincount = sizeof(analog_input)/sizeof(analog_input[0]);
-static_assert(ai_pincount>0, "Analog input selected, but no analog input pins defined");
-uint8_t ai_value[ai_pincount];
-#endif //CFOS_IN_ANALOG
-#if defined(CFOS_IN_ULTRASOUND)
-const uint8_t us_pincount = sizeof(us_sensor)/sizeof(us_sensor[0]);
-static_assert(us_pincount>0, "Ultrasound input selected, but no ultrasound input pins defined");
-uint32_t us_duration[us_pincount];
-#endif //CFOS_IN_ULTRASOUND
+void init_config() {
+  EEPROM.begin(1024);
+  EEPROM.get(0, cfg);
+  EEPROM.end();
+  uint32_t checksum_eeprom = cfg.checksum;
+  cfg.checksum = 0;
+  uint32_t checksum_calculated = CRC32::calculate((uint8_t*)(&cfg), 1024);
+  Serial.print(F("Checksum EEPROM: "));
+  Serial.println(checksum_eeprom, 16);
+  Serial.print(F("Checksum calc  : "));
+  Serial.println(checksum_calculated, 16);
 
-#if defined(CFOS_IN_ANALOG) && defined(CFOS_IN_SMARTEVSE)
-static_assert((ai_pincount + evse_pincount)<5, "a maximum of 4 ev status inputs (analog or SmartEVSE) is supported");
-#elif defined(CFOS_IN_ANALOG)
-static_assert((ai_pincount)<5, "a maximum of 4 ev status inputs (analog or SmartEVSE) is supported");
-#elif defined(CFOS_IN_SMARTEVSE)
-static_assert((evse_pincount)<5, "a maximum of 4 ev status inputs (analog or SmartEVSE) is supported");
-#endif //CFOS_IN_ANALOG && CFOS_IN_SMARTEVSE
-
-void setup() {
-  last_sensor_update = 0;
-  init_serial();
-  init_inputs();
-  init_network();
-  init_lora();
-  init_mqtt();
-  init_smartevse();
-
-#if defined(CFOS_OUT_SERIAL)
-  Serial.println("CfOnlinestatus initialisation complete.");
-#endif //CFOS_OUT_SERIAL
-}
-
-void loop() {
-  uint32_t current_time = millis();
-  read_s0_inputs();
-  read_evse_buffers();
-  read_cp_input();
-  if(((uint32_t)(current_time-last_sensor_update)) >= sensor_update_interval) {
-    last_sensor_update = current_time;
-    update_s0();
-    update_digital_input();
-    //update_analog_input();
-    update_ultrasound();
+  if(cfg.magic_marker != 0x51EF || checksum_eeprom != checksum_calculated) {
+    cfg = default_config;
+    Serial.println(F("invalid config - saving new default config"));
+    save_config();
   }
-  ethernet_renew_dhcp();
-  output_serial_interval();
-  output_mqtt_interval();
-  output_lora_interval();
 }
 
-uint8_t analogvals[100];
-uint8_t analogpos=0;
-uint16_t analogsum = 0;
-uint32_t last_nonzero_analog = 0;
+void save_config() {
+  cfg.checksum = 0;
+  uint32_t checksum_calculated = CRC32::calculate((uint8_t*)(&cfg), 1024);
+  cfg.checksum = checksum_calculated;
+  Serial.println(F("saving config"));
+  EEPROM.begin(1024);
+  EEPROM.put(0, cfg);
+  delay(200);
+  EEPROM.commit();
+  EEPROM.end();
+  Serial.println(F("saving config done"));
+}
+
+/*
+
+
 
 void read_cp_input() {
   uint8_t val = (uint8_t)(analogRead(A0)/4);
@@ -872,4 +851,5 @@ inline void read_evse_buffers() {
   }
   #endif //CFOS_IN_SMARTEVSE
 }
+*/
 
