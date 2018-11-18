@@ -5,7 +5,7 @@ This it the [main development thread (in German)](https://www.goingelectric.de/f
 
 ## Requirements
 To use this software, you will need
-- a compatible microcontroller platform (currently ESP8266 or Arduino). If you don't know what to use, buy the following:
+- a compatible microcontroller platform (currently ESP8266). If you don't know what to use, buy the following:
   - Microcontroller board: [WEMOS D1 mini Pro](https://wiki.wemos.cc/products:d1:d1_mini_pro) (under 10$/10€)
   - Power supply: Any USB charger that provides a **stable** 500 mA or more, e.g. [MeanWell HDR-15-5](http://www.meanwell.com/productPdf.aspx?i=751)
   - Level shifter(s): The ESP8266 only supports 3.3V input, so you will need a [logic level converter](http://www.ebay.com/sch/?_nkw=logic%20level%20converter%203.3v) to connect 5V inputs
@@ -26,22 +26,29 @@ To use this software, you will need
     - MQTT Broker IP: 46.38.232.97 TCP Port: 1883, please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com
     - TheThingsNetwork application eui: 70B3D57ED000ABB5, please send your device eui by mail to request app key from tho.walther@gmail.com
 - a way to connect to a network (if you don't exclusively use serial output)
-  - WiFi (currently ESP8266 only)
-  - Ethernet (currently Arduino only)
-  - LoRaWAN TheThingsNetwork (currently Arduino only), location must be covered by [TheThingsNetwork Gateway](https://www.thethingsnetwork.org/map) (see [TTN Mapper)](https://ttnmapper.org/))
+  - WiFi
+  - LoRaWAN TheThingsNetwork (currently not fully implemented), location must be covered by [TheThingsNetwork Gateway](https://www.thethingsnetwork.org/map) (see [TTN Mapper)](https://ttnmapper.org/))
   - GSM (currently not implemented)
   
 ## Quickstart
 - Download or clone the repository
-- Edit sketch/cfos_config.h to suit your needs
 - In your Arduino IDE, add the correct board in the board manager
   -  ESP8266
 - In your Arduino IDE, add any needed additional libraries
   - PubSubClient for MQTT
   - TheThingsNetwork for LoRaWAN
 - Compile and upload the sketch to your hardware
-- Connect all input pins
-- Profit! (hopefully)
+- Connect to the WiFi CFOSconfig
+- Open http://192.168.4.1 in your browser, make the needed settings and save the config
+- Disconnect the board from power, connect all input pins, check if it works
+
+## Configuration screenshots
+These were taken from a mobile phone
+![CFOS config screenshot 1](doc/CFOSconfig1.png)
+![CFOS config screenshot 2](doc/CFOSconfig2.png)
+![CFOS config screenshot 3](doc/CFOSconfig3.png)
+![CFOS config screenshot 4](doc/CFOSconfig4.png)
+![CFOS config screenshot 5](doc/CFOSconfig5.png)
 
 ## Serial output
 You can configure the interval between two serial outputs. Serial output begins with  
