@@ -43,12 +43,12 @@ To use this software, you will need
 - Disconnect the board from power, connect all input pins, check if it works
 
 ## Configuration screenshots
-These were taken from a mobile phone
-![CFOS config screenshot 1](doc/CFOSconfig1.png)
-![CFOS config screenshot 2](doc/CFOSconfig2.png)
-![CFOS config screenshot 3](doc/CFOSconfig3.png)
-![CFOS config screenshot 4](doc/CFOSconfig4.png)
-![CFOS config screenshot 5](doc/CFOSconfig5.png)
+These were taken from a mobile phone:
+- [CFOS config screenshot 1](doc/CFOSconfig1.png)
+- [CFOS config screenshot 2](doc/CFOSconfig2.png)
+- [CFOS config screenshot 3](doc/CFOSconfig3.png)
+- [CFOS config screenshot 4](doc/CFOSconfig4.png)
+- [CFOS config screenshot 5](doc/CFOSconfig5.png)
 
 ## Serial output
 You can configure the interval between two serial outputs. Serial output begins with  
