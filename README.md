@@ -20,15 +20,11 @@ To use this software, you will need
 - an endpoint to receive the data output
   - serial interface on a connected PC or other device
   - MQTT server
-  - [TheThingsNetwork](https://www.thethingsnetwork.org) Application
   - (other endpoints may be implemented in the future)
   - in case of GoingElectric.de crowdfunding charging station you can use the central services (provided by [nextmove](https://nextmove.de/))
     - MQTT Broker IP: 46.38.232.97 TCP Port: 1883, please send your "chargepoint_id" by mail to request username and password from tho.walther@gmail.com
-    - TheThingsNetwork application eui: 70B3D57ED000ABB5, please send your device eui by mail to request app key from tho.walther@gmail.com
 - a way to connect to a network (if you don't exclusively use serial output)
   - WiFi
-  - LoRaWAN TheThingsNetwork (currently not fully implemented), location must be covered by [TheThingsNetwork Gateway](https://www.thethingsnetwork.org/map) (see [TTN Mapper)](https://ttnmapper.org/))
-  - GSM (currently not implemented)
   
 ## Quickstart
 - Download or clone the repository
@@ -36,7 +32,6 @@ To use this software, you will need
   -  ESP8266
 - In your Arduino IDE, add any needed additional libraries
   - PubSubClient for MQTT
-  - TheThingsNetwork for LoRaWAN
 - Compile and upload the sketch to your hardware
 - Connect to the WiFi CFOSconfig
 - Open http://192.168.4.1 in your browser, make the needed settings and save the config
