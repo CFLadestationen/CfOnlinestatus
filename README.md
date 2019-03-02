@@ -32,6 +32,7 @@ To use this software, you will need
   -  ESP8266
 - In your Arduino IDE, add any needed additional libraries
   - PubSubClient for MQTT
+  - CRC32 by Christopher Baker
 - Compile and upload the sketch to your hardware
 - Connect to the WiFi CFOSconfig
 - Open http://192.168.4.1 in your browser, make the needed settings and save the config
